@@ -1,0 +1,114 @@
+.ledger-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.action-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: white;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ledger-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.desktop-table {
+    width: 100%;
+}
+
+.transaction-form-inline {
+    margin-bottom: 20px;
+}
+
+.form-card {
+    padding: 16px;
+    border: 1px solid #ddd;
+}
+
+.entry-form {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-btns {
+    display: flex;
+    gap: 8px;
+}
+
+.mobile-ledger {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ledger-card-item {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-content {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+}
+
+.type {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+}
+
+.debit {
+    background: #f44336;
+}
+
+.credit {
+    background: #4caf50;
+}
+
+@media (max-width: 768px) {
+    .action-bar {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .ledger-actions {
+        width: 100%;
+    }
+
+    .ledger-actions button {
+        flex: 1;
+        font-size: 12px;
+    }
+
+    .entry-form {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,58 @@
+<div class="form-container">
+    <div class="header">
+        <button mat-icon-button routerLink="/customers">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1>Add New Customer</h1>
+    </div>
+
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="responsive-form">
+        <div class="form-grid">
+            <mat-form-field appearance="outline">
+                <mat-label>Customer Name</mat-label>
+                <input matInput formControlName="name" placeholder="Enter name">
+                @if (customerForm.get('name')?.hasError('required')) {
+                    <mat-error>Name is required</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Mobile Number</mat-label>
+                <input matInput formControlName="mobile" placeholder="10-digit mobile">
+                @if (customerForm.get('mobile')?.hasError('required')) {
+                    <mat-error>Mobile is required</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Address</mat-label>
+                <textarea matInput formControlName="address" rows="3" placeholder="Enter full address"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Opening Balance</mat-label>
+                <input matInput type="number" formControlName="openingBalance" placeholder="0.00">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description (Optional)</mat-label>
+                <textarea matInput formControlName="description" placeholder="Any notes..."></textarea>
+            </mat-form-field>
+        </div>
+
+        <div class="actions">
+            <button mat-button type="button" routerLink="/customers">Cancel</button>
+            <button mat-raised-button color="primary" type="submit" [disabled]="customerForm.invalid">
+                Save Customer
+            </button>
+        </div>
+
+        <!-- Sticky Save Button for Mobile -->
+        <div class="mobile-sticky-action">
+            <button mat-flat-button color="primary" type="submit" [disabled]="customerForm.invalid"
+                class="full-width-btn">
+                SAVE CUSTOMER
+            </button>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,39 @@
+<div class="reports-container">
+    <h1>Reports & Insights</h1>
+
+    <div class="report-grid">
+        <mat-card class="chart-section">
+            <mat-card-header>
+                <mat-card-title>Weekly Summary</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="chart-placeholder">
+                    <!-- Placeholder for chart -->
+                    <div class="bar-chart">
+                        <div class="bar debit" style="height: 60%"></div>
+                        <div class="bar credit" style="height: 40%"></div>
+                        <div class="bar debit" style="height: 80%"></div>
+                        <div class="bar credit" style="height: 70%"></div>
+                        <div class="bar debit" style="height: 45%"></div>
+                        <div class="bar credit" style="height: 90%"></div>
+                    </div>
+                    <p>Visualizing your credit vs collections</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <div class="stats-column">
+            <mat-card class="mini-stat">
+                <h3>Cash in Hand</h3>
+                <h1>₹ {{ stats().todayCredit | number:'1.2-2' }}</h1>
+                <span class="label">Today's Collections</span>
+            </mat-card>
+
+            <mat-card class="mini-stat">
+                <h3>Pending Market</h3>
+                <h1>₹ {{ stats().totalPending | number:'1.2-2' }}</h1>
+                <span class="label">Total credit given</span>
+            </mat-card>
+        </div>
+    </div>
+</div>
