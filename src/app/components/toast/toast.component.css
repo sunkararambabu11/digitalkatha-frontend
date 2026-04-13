@@ -1,0 +1,123 @@
+/* ============================================================
+   TOAST — Carbon Inline Notification (Toast variant)
+   ============================================================ */
+.cds-toast-container {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  z-index: 9100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.cds-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cds-spacing-04);
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
+  background-color: var(--cds-layer-01);
+  border-left: 3px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  animation: cds-toast-in var(--cds-duration-moderate-02) var(--cds-easing-entrance);
+  pointer-events: auto;
+}
+
+@keyframes cds-toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Type variants */
+.cds-toast--success {
+  border-left-color: var(--cds-support-success);
+}
+.cds-toast--success .cds-toast__icon {
+  color: var(--cds-support-success);
+}
+
+.cds-toast--error {
+  border-left-color: var(--cds-support-error);
+}
+.cds-toast--error .cds-toast__icon {
+  color: var(--cds-support-error);
+}
+
+.cds-toast--warning {
+  border-left-color: var(--cds-support-warning);
+}
+.cds-toast--warning .cds-toast__icon {
+  color: var(--cds-support-warning);
+}
+
+.cds-toast--info {
+  border-left-color: var(--cds-support-info);
+}
+.cds-toast--info .cds-toast__icon {
+  color: var(--cds-support-info);
+}
+
+/* Icon */
+.cds-toast__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Content */
+.cds-toast__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cds-toast__title {
+  font-size: var(--cds-body-short-01-size);
+  font-weight: 600;
+  color: var(--cds-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.cds-toast__subtitle {
+  font-size: var(--cds-label-01-size);
+  color: var(--cds-text-secondary);
+  margin: 2px 0 0 0;
+  line-height: 1.3;
+}
+
+/* Close button */
+.cds-toast__close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--cds-icon-secondary);
+  cursor: pointer;
+}
+
+.cds-toast__close:hover {
+  background-color: var(--cds-layer-hover-01);
+  color: var(--cds-icon-primary);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .cds-toast-container {
+    right: 8px;
+    left: 8px;
+    max-width: none;
+  }
+}

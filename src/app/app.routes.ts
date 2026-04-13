@@ -1,55 +1,21 @@
 import { Routes } from '@angular/router';
-import { MainLayoutComponent } from './layout/main-layout.component';
-import { authGuard } from './core/guards/auth.guard';
-import { guestGuard } from './core/guards/guest.guard';
+import { LoginComponent } from './components/login/login.component';
+import { SignupComponent } from './components/signup/signup.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { CustomersComponent } from './components/customers/customers.component';
+import { CustomerDetailComponent } from './components/customer-detail/customer-detail.component';
+import { TransactionsComponent } from './components/transactions/transactions.component';
+import { ReportsComponent } from './components/reports/reports.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-    {
-        path: 'login',
-        canActivate: [guestGuard],
-        loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
-    },
-    {
-        path: 'register',
-        canActivate: [guestGuard],
-        loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
-    },
-    {
-        path: '',
-        component: MainLayoutComponent,
-        canActivate: [authGuard],
-        children: [
-            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-            {
-                path: 'dashboard',
-                loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
-            },
-            {
-                path: 'customers',
-                children: [
-                    {
-                        path: '',
-                        loadComponent: () => import('./features/customers/list/customer-list.component').then(m => m.CustomerListComponent)
-                    },
-                    {
-                        path: 'add',
-                        loadComponent: () => import('./features/customers/add/customer-add.component').then(m => m.CustomerAddComponent)
-                    },
-                    {
-                        path: ':id',
-                        loadComponent: () => import('./features/customers/view/customer-view.component').then(m => m.CustomerViewComponent)
-                    },
-                    {
-                        path: ':id/ledger',
-                        loadComponent: () => import('./features/customers/ledger/customer-ledger.component').then(m => m.CustomerLedgerComponent)
-                    }
-                ]
-            },
-            {
-                path: 'reports',
-                loadComponent: () => import('./features/reports/reports.component').then(m => m.ReportsComponent)
-            }
-        ]
-    },
-    { path: '**', redirectTo: 'login' }
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
+  { path: 'signup', component: SignupComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'customers', component: CustomersComponent, canActivate: [authGuard] },
+  { path: 'customers/:id', component: CustomerDetailComponent, canActivate: [authGuard] },
+  { path: 'transactions', component: TransactionsComponent, canActivate: [authGuard] },
+  { path: 'reports', component: ReportsComponent, canActivate: [authGuard] },
+  { path: '**', redirectTo: '/login' }
 ];

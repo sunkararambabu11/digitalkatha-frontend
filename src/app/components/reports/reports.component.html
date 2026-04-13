@@ -1,0 +1,95 @@
+<app-layout>
+  <div class="cds-content__header">
+    <div>
+      <h2>Reports</h2>
+      <p>Generate and download customer statements</p>
+    </div>
+  </div>
+
+  <!-- All Customers PDF -->
+  <div class="cds-tile" *ngIf="!loading">
+    <div class="cds-tile__header">
+      <h4>Download all customers</h4>
+    </div>
+    <div class="cds-tile__body">
+      <p class="cds-tile__desc">Download a PDF report of all registered customers and their current balances.</p>
+      <button class="cds-btn cds-btn--secondary" (click)="downloadAllCustomersPdf()" [disabled]="downloadingAll">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zm0-10l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+        {{ downloadingAll ? 'Downloading...' : 'Download all customers PDF' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Report Generation Tile -->
+  <div class="cds-tile" *ngIf="!loading">
+    <div class="cds-tile__header">
+      <h4>Generate customer statement</h4>
+    </div>
+
+    <div *ngIf="customers.length === 0" class="cds-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      <h3>No customers available</h3>
+      <p>Add customers first to generate reports</p>
+    </div>
+
+    <div *ngIf="customers.length > 0" class="cds-tile__body">
+      <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error"><p>{{ error }}</p></div>
+
+      <div class="form-row">
+        <div class="cds-form-item">
+          <label class="cds-label" for="reportCustomer">Select customer</label>
+          <select class="cds-select" id="reportCustomer" [(ngModel)]="selectedCustomerId">
+            <option value="">Choose a customer</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }} — {{ customer.mobile }}</option>
+          </select>
+        </div>
+        <div class="cds-form-item">
+          <label class="cds-label" for="dateRange">Date range</label>
+          <select class="cds-select" id="dateRange" [(ngModel)]="dateRange">
+            <option value="all">All Time</option>
+            <option value="3m">Last 3 Months</option>
+            <option value="6m">Last 6 Months</option>
+          </select>
+        </div>
+      </div>
+
+      <button class="cds-btn cds-btn--primary" (click)="downloadReport()" [disabled]="downloading || !selectedCustomerId">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4zm0-10l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+        {{ downloading ? 'Generating...' : 'Download statement' }}
+      </button>
+
+      <!-- Preview Tile -->
+      <div class="cds-preview" *ngIf="selectedCustomerId && getSelectedCustomer()">
+        <h5>Statement preview</h5>
+        <div class="cds-preview__grid">
+          <div class="cds-preview__row"><span class="cds-preview__label">Customer</span><span class="cds-preview__value">{{ getSelectedCustomer()?.name }}</span></div>
+          <div class="cds-preview__row"><span class="cds-preview__label">Mobile</span><span class="cds-preview__value">{{ getSelectedCustomer()?.mobile }}</span></div>
+          <div class="cds-preview__row"><span class="cds-preview__label">Current balance</span><span class="cds-preview__value cds-preview__value--mono">₹{{ getSelectedCustomer() ? getSelectedCustomer()!.currentBalance.toFixed(2) : "0.00" }}</span></div>
+          <div class="cds-preview__row"><span class="cds-preview__label">Period</span><span class="cds-preview__value">{{ dateRange === 'all' ? 'All transactions' : dateRange === '3m' ? 'Last 3 months' : 'Last 6 months' }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Tile -->
+  <div class="cds-tile cds-tile--info">
+    <div class="cds-tile__header">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z"/><path d="M17.5 24h-3V14h3zm0-12h-3V8h3z"/></svg>
+      <h4>About customer statements</h4>
+    </div>
+    <ul class="cds-tile__list">
+      <li>Detailed transaction history with dates and amounts</li>
+      <li>Running balance calculation for easy tracking</li>
+      <li>Text format suitable for sharing</li>
+      <li>Filter by date range for specific periods</li>
+      <li>Includes shop and customer information</li>
+    </ul>
+  </div>
+
+  <div class="cds-loading" *ngIf="loading">
+    <div class="cds-loading__bar"></div>
+    <p class="cds-loading__text">Loading...</p>
+  </div>
+</app-layout>

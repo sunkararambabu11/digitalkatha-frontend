@@ -1,0 +1,280 @@
+<!-- ============================================================
+     FLOATING AI CHAT WIDGET
+     States: closed (FAB only), chat (mini window), expanded (fullscreen)
+     ============================================================ -->
+<ng-container *ngIf="isVisible">
+
+  <!-- ── PROACTIVE TEASER ── -->
+  <div class="cw-teaser" *ngIf="showTeaser && widgetView === 'closed'" (click)="openWidget()">
+    <span class="cw-teaser__text">Need help with your khata?</span>
+    <button class="cw-teaser__close" (click)="dismissTeaser(); $event.stopPropagation()" aria-label="Dismiss">&times;</button>
+  </div>
+
+  <!-- ── FLOATING ACTION BUTTON ── -->
+  <button
+    class="cw-fab"
+    [class.cw-fab--open]="widgetView !== 'closed'"
+    (click)="toggleWidget()"
+    [attr.aria-expanded]="widgetView !== 'closed'"
+    aria-label="Chat with AI assistant"
+    aria-haspopup="dialog">
+    <!-- Chat icon (when closed) -->
+    <svg *ngIf="widgetView === 'closed'" class="cw-fab__icon" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <!-- Close icon (when open) -->
+    <svg *ngIf="widgetView !== 'closed'" class="cw-fab__icon cw-fab__icon--close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- ── BACKDROP (expanded only) ── -->
+  <div class="cw-backdrop" *ngIf="widgetView === 'expanded'" (click)="collapseWidget()"></div>
+
+  <!-- ── CHAT WINDOW ── -->
+  <div
+    class="cw-window"
+    *ngIf="widgetView !== 'closed'"
+    [class.cw-window--expanded]="widgetView === 'expanded'"
+    role="dialog"
+    aria-modal="true"
+    aria-label="AI Chat Assistant">
+
+    <!-- HEADER -->
+    <div class="cw-header">
+      <div class="cw-header__left">
+        <!-- Back arrow (history → messages) -->
+        <button *ngIf="panelView === 'history'" class="cw-header__btn" (click)="showMessages()" aria-label="Back to chat" title="Back to chat">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+        </button>
+        <div class="cw-header__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/>
+            <path d="M2 14h2"/><path d="M20 14h2"/><path d="M9 13v2"/><path d="M15 13v2"/>
+          </svg>
+        </div>
+        <div class="cw-header__info">
+          <span class="cw-header__title">{{ panelView === 'history' ? 'Conversations' : 'AI Assistant' }}</span>
+          <span class="cw-header__status" *ngIf="panelView === 'messages'">
+            <span class="cw-header__dot"></span> Online
+          </span>
+        </div>
+      </div>
+      <div class="cw-header__actions">
+        <!-- New chat -->
+        <button class="cw-header__btn" (click)="startNewChat()" aria-label="New conversation" title="New conversation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+        <!-- History -->
+        <button class="cw-header__btn" [class.cw-header__btn--active]="panelView === 'history'" (click)="panelView === 'history' ? showMessages() : showHistory()" aria-label="Conversation history" title="Conversation history">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </button>
+        <!-- Expand / Collapse -->
+        <button *ngIf="widgetView === 'chat'" class="cw-header__btn cw-header__btn--expand" (click)="expandWidget()" aria-label="Expand" title="Expand chat">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </button>
+        <button *ngIf="widgetView === 'expanded'" class="cw-header__btn cw-header__btn--expand" (click)="collapseWidget()" aria-label="Collapse" title="Collapse chat">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+            <line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+        </button>
+        <!-- Close -->
+        <button class="cw-header__btn" (click)="closeWidget()" aria-label="Close chat" title="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════ EXPANDED SIDEBAR: Conversation List ═══════ -->
+    <div class="cw-body" [class.cw-body--with-sidebar]="widgetView === 'expanded'">
+
+      <div class="cw-sidebar" *ngIf="widgetView === 'expanded'">
+        <div class="cw-sidebar__header">
+          <input
+            type="text"
+            class="cw-sidebar__search"
+            [(ngModel)]="historySearch"
+            placeholder="Search conversations..."
+            autocomplete="off" />
+          <button class="cw-sidebar__new" (click)="startNewChat()" title="New conversation">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div class="cw-sidebar__list">
+          <div
+            *ngFor="let conv of filteredConversations; trackBy: trackByConvId"
+            class="cw-sidebar__item"
+            [class.cw-sidebar__item--active]="activeConversation?.id === conv.id"
+            (click)="selectConversation(conv)">
+            <div class="cw-sidebar__item-content">
+              <span class="cw-sidebar__item-title">{{ conv.title }}</span>
+              <span class="cw-sidebar__item-time">{{ formatRelative(conv.updatedAt) }}</span>
+              <span class="cw-sidebar__item-preview">{{ getConvPreview(conv) }}</span>
+            </div>
+            <button *ngIf="deleteConfirmId !== conv.id" class="cw-sidebar__item-delete" (click)="confirmDeleteConversation(conv.id, $event)" title="Delete" aria-label="Delete conversation">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+            </button>
+            <div *ngIf="deleteConfirmId === conv.id" class="cw-sidebar__item-confirm">
+              <button class="cw-sidebar__confirm-yes" (click)="deleteConversation(conv.id, $event)">Delete</button>
+              <button class="cw-sidebar__confirm-no" (click)="cancelDelete($event)">Cancel</button>
+            </div>
+          </div>
+          <!-- Empty state -->
+          <div *ngIf="filteredConversations.length === 0" class="cw-sidebar__empty">
+            <p>{{ historySearch ? 'No matching conversations' : 'No conversations yet' }}</p>
+            <button *ngIf="!historySearch" class="cw-sidebar__empty-btn" (click)="startNewChat()">Start a new chat</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════ MAIN CHAT AREA ═══════ -->
+      <div class="cw-main">
+
+        <!-- HISTORY PANEL (mini mode only) -->
+        <div class="cw-history" *ngIf="panelView === 'history' && widgetView === 'chat'">
+          <input
+            type="text"
+            class="cw-history__search"
+            [(ngModel)]="historySearch"
+            placeholder="Search conversations..."
+            autocomplete="off" />
+          <div class="cw-history__list">
+            <div
+              *ngFor="let conv of filteredConversations; trackBy: trackByConvId"
+              class="cw-history__item"
+              [class.cw-history__item--active]="activeConversation?.id === conv.id"
+              (click)="selectConversation(conv)">
+              <div class="cw-history__item-left">
+                <span class="cw-history__item-title">{{ conv.title }}</span>
+                <span class="cw-history__item-preview">{{ getConvPreview(conv) }}</span>
+              </div>
+              <div class="cw-history__item-right">
+                <span class="cw-history__item-time">{{ formatRelative(conv.updatedAt) }}</span>
+                <button *ngIf="deleteConfirmId !== conv.id" class="cw-history__item-delete" (click)="confirmDeleteConversation(conv.id, $event)" aria-label="Delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+                <div *ngIf="deleteConfirmId === conv.id" class="cw-history__confirm">
+                  <button class="cw-history__confirm-yes" (click)="deleteConversation(conv.id, $event)">Delete</button>
+                  <button class="cw-history__confirm-no" (click)="cancelDelete($event)">Cancel</button>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="filteredConversations.length === 0" class="cw-history__empty">
+              <p>{{ historySearch ? 'No matches' : 'No conversations yet' }}</p>
+              <button *ngIf="!historySearch" class="cw-history__new-btn" (click)="startNewChat()">Start a new chat</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGES VIEW -->
+        <ng-container *ngIf="panelView === 'messages' || widgetView === 'expanded'">
+          <!-- Messages -->
+          <div class="cw-messages" #messagesContainer (scroll)="onMessagesScroll()">
+
+            <!-- Welcome (no messages yet) -->
+            <div *ngIf="messages.length === 0" class="cw-welcome">
+              <div class="cw-welcome__icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/>
+                  <path d="M2 14h2"/><path d="M20 14h2"/><path d="M9 13v2"/><path d="M15 13v2"/>
+                </svg>
+              </div>
+              <h3 class="cw-welcome__title">{{ greeting }}!</h3>
+              <p class="cw-welcome__text">I'm your Digital Khata assistant. Ask me anything about managing your shop.</p>
+              <div class="cw-welcome__suggestions">
+                <button *ngFor="let s of suggestions" class="cw-welcome__chip" (click)="useSuggestion(s)">{{ s }}</button>
+              </div>
+            </div>
+
+            <!-- Message bubbles -->
+            <ng-container *ngFor="let msg of messages; trackBy: trackByMsgId">
+              <div class="cw-bubble-row" [class.cw-bubble-row--user]="msg.role === 'user'" [class.cw-bubble-row--assistant]="msg.role === 'assistant'">
+                <!-- Avatar -->
+                <div class="cw-avatar" [class.cw-avatar--user]="msg.role === 'user'" [class.cw-avatar--ai]="msg.role === 'assistant'">
+                  <svg *ngIf="msg.role === 'assistant'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M9 13v2"/><path d="M15 13v2"/></svg>
+                  <svg *ngIf="msg.role === 'user'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <!-- Bubble -->
+                <div class="cw-bubble" [class.cw-bubble--user]="msg.role === 'user'" [class.cw-bubble--ai]="msg.role === 'assistant'">
+                  <div class="cw-bubble__content" [innerHTML]="formatContent(msg.content)"></div>
+                  <div class="cw-bubble__meta">
+                    <span class="cw-bubble__time">{{ formatTime(msg.timestamp) }}</span>
+                    <button *ngIf="msg.role === 'assistant'" class="cw-bubble__copy" (click)="copyMessage(msg.content)" title="Copy">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Typing indicator -->
+            <div *ngIf="isLoading" class="cw-bubble-row cw-bubble-row--assistant">
+              <div class="cw-avatar cw-avatar--ai">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8V4H8"/><rect x="4" y="8" width="16" height="12" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M9 13v2"/><path d="M15 13v2"/></svg>
+              </div>
+              <div class="cw-bubble cw-bubble--ai cw-bubble--typing">
+                <span class="cw-typing-dot"></span>
+                <span class="cw-typing-dot"></span>
+                <span class="cw-typing-dot"></span>
+              </div>
+            </div>
+
+            <!-- Scroll to bottom button -->
+            <button *ngIf="showScrollBtn" class="cw-scroll-btn" (click)="scrollToBottomClick()" aria-label="Scroll to bottom">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </div>
+
+          <!-- Suggestions (show after welcome when messages < 2) -->
+          <div *ngIf="messages.length > 0 && messages.length <= 1 && !isLoading" class="cw-quick-suggestions">
+            <button *ngFor="let s of suggestions.slice(0, 3)" class="cw-quick-chip" (click)="useSuggestion(s)">{{ s }}</button>
+          </div>
+
+          <!-- Input area -->
+          <div class="cw-input-area">
+            <div class="cw-input-wrapper">
+              <input
+                #messageInput
+                type="text"
+                class="cw-input"
+                [(ngModel)]="inputMessage"
+                (keydown)="onKeyDown($event)"
+                placeholder="Type your question..."
+                [disabled]="isLoading"
+                autocomplete="off" />
+              <button
+                class="cw-send-btn"
+                (click)="sendMessage()"
+                [disabled]="!inputMessage.trim() || isLoading"
+                aria-label="Send message"
+                title="Send">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+              </button>
+            </div>
+            <div class="cw-input-footer">
+              <span class="cw-input-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                Mock AI &middot; API key coming soon
+              </span>
+              <span class="cw-input-esc">ESC to close</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</ng-container>

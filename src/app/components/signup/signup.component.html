@@ -1,0 +1,87 @@
+<div class="auth-page">
+  <div class="auth-panel-left">
+    <div class="auth-brand">
+      <div class="auth-brand-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </div>
+      <span class="auth-brand-name">Digital Khata Book</span>
+    </div>
+    <div class="auth-panel-left-content">
+      <h1>Get started</h1>
+      <p>Create your account to start tracking customer credits, managing transactions, and generating reports.</p>
+    </div>
+    <p class="auth-panel-footer">Digital Khata Book &copy; 2026</p>
+  </div>
+
+  <div class="auth-panel-right">
+    <div class="auth-form-wrapper">
+      <div class="auth-form-header">
+        <h2>Create an account</h2>
+        <p>Fill in your details to register your shop</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Error notification -->
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error" role="alert">
+          <div class="cds-inline-notification__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm5.4,18L20,21.4,16,17.4,12,21.4,10.6,20,14.6,16l-4-4L12,10.6l4,4,4-4L21.4,12l-4,4Z"/>
+            </svg>
+          </div>
+          <div class="cds-inline-notification__text">
+            <p class="cds-inline-notification__title">Registration failed</p>
+            <p class="cds-inline-notification__subtitle">{{ error }}</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="cds-form-item">
+            <label class="cds-label" for="shopName">Shop name</label>
+            <input class="cds-text-input" type="text" id="shopName" name="shopName" [(ngModel)]="signupData.shopName" placeholder="e.g. Sharma General Store" required />
+          </div>
+          <div class="cds-form-item">
+            <label class="cds-label" for="ownerName">Owner name</label>
+            <input class="cds-text-input" type="text" id="ownerName" name="ownerName" [(ngModel)]="signupData.ownerName" placeholder="Full name" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="cds-form-item">
+            <label class="cds-label" for="mobile">Mobile number</label>
+            <input class="cds-text-input" type="tel" id="mobile" name="mobile" [(ngModel)]="signupData.mobile" placeholder="10-digit mobile" required />
+          </div>
+          <div class="cds-form-item">
+            <label class="cds-label" for="email">Email</label>
+            <input class="cds-text-input" type="email" id="email" name="email" [(ngModel)]="signupData.email" placeholder="email@example.com" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="cds-form-item">
+            <label class="cds-label" for="password">Password</label>
+            <input class="cds-text-input" type="password" id="password" name="password" [(ngModel)]="signupData.password" placeholder="Min. 6 characters" required autocomplete="new-password" />
+          </div>
+          <div class="cds-form-item">
+            <label class="cds-label" for="confirmpassword">Confirm password</label>
+            <input class="cds-text-input" type="password" id="confirmpassword" name="confirmPassword" [(ngModel)]="signupData.confirmPassword" placeholder="Re-enter password" required autocomplete="new-password" />
+          </div>
+        </div>
+
+        <button type="submit" class="cds-btn cds-btn--primary cds-btn--lg" [disabled]="loading">
+          <span>{{ loading ? 'Creating account...' : 'Create account' }}</span>
+          <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+            <path d="M12 4l-1.4 1.4L19.2 14H2v2h17.2l-8.6 8.6L12 26l10.6-10.6z"/>
+          </svg>
+        </button>
+
+        <p class="auth-alt-link">
+          Already have an account?
+          <a routerLink="/login">Log in</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

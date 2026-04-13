@@ -1,0 +1,155 @@
+<app-layout>
+  <div class="cds-content__header">
+    <div>
+      <h2>Transactions</h2>
+      <p>Record and view all transactions</p>
+    </div>
+    <button class="cds-btn cds-btn--primary" (click)="openDialog()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+      Add transaction
+    </button>
+  </div>
+
+  <div class="cds-data-table-container" *ngIf="!loading">
+    <div class="cds-data-table-toolbar">
+      <h4 class="cds-data-table-header__title">Transaction list</h4>
+      <div class="cds-toolbar-filters">
+        <div class="cds-toolbar-filter">
+          <label class="cds-label cds-label--inline" for="customerFilter">Customer:</label>
+          <select class="cds-select cds-select--inline" id="customerFilter" [(ngModel)]="selectedCustomerId" (change)="filterTransactions()">
+            <option value="all">All Customers</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }}</option>
+          </select>
+        </div>
+        <div class="cds-toolbar-filter">
+          <label class="cds-label cds-label--inline" for="dateFrom">From:</label>
+          <input class="cds-date-input" type="date" id="dateFrom" [(ngModel)]="dateFrom" (change)="filterTransactions()" />
+        </div>
+        <div class="cds-toolbar-filter">
+          <label class="cds-label cds-label--inline" for="dateTo">To:</label>
+          <input class="cds-date-input" type="date" id="dateTo" [(ngModel)]="dateTo" (change)="filterTransactions()" />
+        </div>
+        <button class="cds-btn-icon" *ngIf="dateFrom || dateTo" (click)="clearDateFilter()" title="Clear date filter">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="filteredTransactions.length === 0" class="cds-empty-state">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      <h3>No transactions found</h3>
+      <p>{{ (dateFrom || dateTo) ? 'Try adjusting your date filter' : 'Start by adding your first transaction' }}</p>
+      <button class="cds-btn cds-btn--primary" *ngIf="!dateFrom && !dateTo" (click)="openDialog()">Add transaction</button>
+    </div>
+
+    <table class="cds-data-table" *ngIf="filteredTransactions.length > 0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th class="text-right">Amount</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let transaction of filteredTransactions">
+          <td>{{ formatDate(transaction.createdAt) }}</td>
+          <td class="cds-data-table__cell--bold">{{ transaction.customerName }}</td>
+          <td>
+            <span [class]="transaction.type === 'DEBIT' ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
+              {{ transaction.type === 'DEBIT' ? 'DEBIT' : 'CREDIT' }}
+            </span>
+          </td>
+          <td class="cds-data-table__cell--secondary">{{ transaction.description || '—' }}</td>
+          <td class="text-right">
+            <span [class]="transaction.type === 'DEBIT' ? 'cds-amount cds-amount--debit' : 'cds-amount cds-amount--credit'">
+              {{ transaction.type === 'DEBIT' ? '+' : '-' }}₹{{ transaction.amount.toFixed(2) }}
+            </span>
+          </td>
+          <td class="text-right">
+            <div class="cds-action-group">
+              <button class="cds-btn-icon" (click)="openEditDialog(transaction)" title="Edit">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="cds-btn-icon cds-btn-icon--danger" (click)="openDeleteDialog(transaction)" title="Delete">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cds-loading" *ngIf="loading">
+    <div class="cds-loading__bar"></div>
+    <p class="cds-loading__text">Loading transactions...</p>
+  </div>
+
+  <!-- Add/Edit Transaction Modal -->
+  <div class="cds-modal-overlay" *ngIf="showDialog" (click)="closeDialog()">
+    <div class="cds-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <div class="cds-modal__header">
+        <h3>{{ editingTransaction ? 'Edit transaction' : 'Add transaction' }}</h3>
+        <button class="cds-modal__close" (click)="closeDialog()" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/></svg>
+        </button>
+      </div>
+      <div class="cds-modal__body">
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error"><p>{{ error }}</p></div>
+        <div class="cds-form-item" *ngIf="!editingTransaction">
+          <label class="cds-label">Customer</label>
+          <select class="cds-select" [(ngModel)]="transactionData.customerId">
+            <option value="">Select customer</option>
+            <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }}</option>
+          </select>
+        </div>
+        <div class="cds-form-item">
+          <label class="cds-label">Type</label>
+          <select class="cds-select" [(ngModel)]="transactionData.type">
+            <option value="DEBIT">Debit (Given)</option>
+            <option value="CREDIT">Credit (Received)</option>
+          </select>
+        </div>
+        <div class="cds-form-item">
+          <label class="cds-label">Amount</label>
+          <input class="cds-text-input" type="number" [(ngModel)]="transactionData.amount" placeholder="Enter amount" step="0.01" />
+        </div>
+        <div class="cds-form-item">
+          <label class="cds-label">Description (optional)</label>
+          <input class="cds-text-input" type="text" [(ngModel)]="transactionData.description" placeholder="Enter description" />
+        </div>
+      </div>
+      <div class="cds-modal__footer">
+        <button class="cds-btn cds-btn--secondary cds-btn--modal" (click)="closeDialog()">Cancel</button>
+        <button class="cds-btn cds-btn--primary cds-btn--modal" (click)="saveTransaction()">{{ editingTransaction ? 'Update' : 'Add transaction' }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Transaction Modal -->
+  <div class="cds-modal-overlay" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
+    <div class="cds-modal cds-modal--sm" (click)="$event.stopPropagation()" role="alertdialog" aria-modal="true">
+      <div class="cds-modal__header">
+        <h3>Delete transaction</h3>
+        <button class="cds-modal__close" (click)="closeDeleteDialog()" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/></svg>
+        </button>
+      </div>
+      <div class="cds-modal__body">
+        <p>Are you sure you want to delete this transaction?</p>
+        <div class="cds-inline-notification cds-inline-notification--warning" style="margin-top: 16px;">
+          <p>This action cannot be undone. The customer's balance will be recalculated.</p>
+        </div>
+      </div>
+      <div class="cds-modal__footer">
+        <button class="cds-btn cds-btn--secondary cds-btn--modal" (click)="closeDeleteDialog()">Cancel</button>
+        <button class="cds-btn cds-btn--danger cds-btn--modal" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+</app-layout>

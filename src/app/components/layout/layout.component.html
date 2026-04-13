@@ -1,0 +1,81 @@
+<div class="cds-shell" (click)="closeProfileDropdown()">
+  <!-- Skip link -->
+  <a href="#main-content" class="sr-only focus-visible">Skip to content</a>
+
+  <!-- Carbon UI Shell Header -->
+  <header class="cds-header">
+    <div class="cds-header__nav-left">
+      <div class="cds-header__brand">
+        <div class="cds-header__brand-icon" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <span class="cds-header__name">Digital Khata Book</span>
+        <span class="cds-header__name-divider">/</span>
+        <span class="cds-header__name-sub">{{ user?.shopName }}</span>
+      </div>
+    </div>
+    <div class="cds-header__nav-right">
+      <div class="cds-header__profile" (click)="$event.stopPropagation()">
+        <button
+          class="cds-header__avatar"
+          (click)="toggleProfileDropdown()"
+          (keydown.enter)="toggleProfileDropdown()"
+          [attr.aria-expanded]="showProfileDropdown"
+          aria-haspopup="true"
+          [title]="user?.ownerName">
+          {{ user?.ownerName ? (user.ownerName.charAt(0) + user.ownerName.charAt(user.ownerName.length - 1)) : 'U' }}
+        </button>
+
+        <!-- Profile Panel -->
+        <div class="cds-panel" *ngIf="showProfileDropdown" role="menu">
+          <div class="cds-panel__header">
+            <div class="cds-panel__avatar">
+              {{ user?.ownerName ? (user.ownerName.charAt(0) + user.ownerName.charAt(user.ownerName.length - 1)) : 'U' }}
+            </div>
+            <div class="cds-panel__info">
+              <p class="cds-panel__name">{{ user?.ownerName }}</p>
+              <p class="cds-panel__email">{{ user?.email }}</p>
+            </div>
+          </div>
+          <div class="cds-panel__divider"></div>
+          <ul class="cds-panel__list">
+            <li class="cds-panel__item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span>{{ user?.ownerName }}</span>
+            </li>
+            <li class="cds-panel__item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              <span>{{ user?.mobile }}</span>
+            </li>
+            <li class="cds-panel__item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span>{{ user?.shopName }}</span>
+            </li>
+          </ul>
+          <div class="cds-panel__divider"></div>
+          <div class="cds-panel__footer">
+            <button class="cds-panel__logout" (click)="logout()" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              Log out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sub-navigation (Carbon Tabs pattern) -->
+  <nav class="cds-subnav" aria-label="Main navigation">
+    <a class="cds-subnav__item" routerLink="/dashboard" routerLinkActive="cds-subnav__item--active">Dashboard</a>
+    <a class="cds-subnav__item" routerLink="/customers" routerLinkActive="cds-subnav__item--active">Customers</a>
+    <a class="cds-subnav__item" routerLink="/transactions" routerLinkActive="cds-subnav__item--active">Transactions</a>
+    <a class="cds-subnav__item" routerLink="/reports" routerLinkActive="cds-subnav__item--active">Reports</a>
+  </nav>
+
+  <!-- Main Content (projected from child pages) -->
+  <main id="main-content" class="cds-content">
+    <ng-content></ng-content>
+  </main>
+</div>

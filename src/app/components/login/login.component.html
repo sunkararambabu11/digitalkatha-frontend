@@ -1,0 +1,95 @@
+<div class="auth-page">
+  <div class="auth-panel-left">
+    <div class="auth-brand">
+      <div class="auth-brand-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+      </div>
+      <span class="auth-brand-name">Digital Khata Book</span>
+    </div>
+    <div class="auth-panel-left-content">
+      <h1>Welcome back</h1>
+      <p>Log in to manage your credit book, track transactions, and generate customer statements.</p>
+    </div>
+    <p class="auth-panel-footer">Digital Khata Book &copy; 2026</p>
+  </div>
+
+  <div class="auth-panel-right">
+    <div class="auth-form-wrapper">
+      <div class="auth-form-header">
+        <h2>Log in</h2>
+        <p>Enter your credentials to continue</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" class="auth-form">
+        <!-- Success notification (after signup redirect) -->
+        <div class="cds-inline-notification cds-inline-notification--success" *ngIf="successMessage" role="status">
+          <div class="cds-inline-notification__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12zM14 21.5l-5-5 1.4-1.4 3.6 3.6 7.6-7.6 1.4 1.4z"/>
+            </svg>
+          </div>
+          <div class="cds-inline-notification__text">
+            <p class="cds-inline-notification__title">Success</p>
+            <p class="cds-inline-notification__subtitle">{{ successMessage }}</p>
+          </div>
+        </div>
+
+        <!-- Error notification -->
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error" role="alert">
+          <div class="cds-inline-notification__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm5.4,18L20,21.4,16,17.4,12,21.4,10.6,20,14.6,16l-4-4L12,10.6l4,4,4-4L21.4,12l-4,4Z"/>
+            </svg>
+          </div>
+          <div class="cds-inline-notification__text">
+            <p class="cds-inline-notification__title">Login failed</p>
+            <p class="cds-inline-notification__subtitle">{{ error }}</p>
+          </div>
+        </div>
+
+        <div class="cds-form-item">
+          <label class="cds-label" for="username">Phone number or email</label>
+          <input
+            class="cds-text-input"
+            type="text"
+            id="username"
+            name="username"
+            [(ngModel)]="loginData.username"
+            placeholder="Enter your phone number or email"
+            required
+            autocomplete="username"
+          />
+        </div>
+
+        <div class="cds-form-item">
+          <label class="cds-label" for="password">Password</label>
+          <input
+            class="cds-text-input"
+            type="password"
+            id="password"
+            name="password"
+            [(ngModel)]="loginData.password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button type="submit" class="cds-btn cds-btn--primary cds-btn--lg" [disabled]="loading">
+          <span>{{ loading ? 'Logging in...' : 'Log in' }}</span>
+          <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+            <path d="M12 4l-1.4 1.4L19.2 14H2v2h17.2l-8.6 8.6L12 26l10.6-10.6z"/>
+          </svg>
+        </button>
+
+        <p class="auth-alt-link">
+          Don't have an account?
+          <a routerLink="/signup">Create an account</a>
+        </p>
+      </form>
+    </div>
+  </div>
+</div>

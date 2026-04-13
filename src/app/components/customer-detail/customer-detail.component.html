@@ -1,0 +1,115 @@
+<app-layout>
+  <!-- Back button + header -->
+  <div class="cds-detail-header">
+    <button class="cds-btn-ghost" (click)="goBack()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M10 16l10-10 1.4 1.4L12.8 16l8.6 8.6L20 26z"/></svg>
+      Back to customers
+    </button>
+  </div>
+
+  <div *ngIf="!loading && customer">
+    <!-- Customer Info Card -->
+    <div class="cds-detail-card">
+      <div class="cds-detail-card__header">
+        <div class="cds-detail-card__avatar">{{ customer.name.charAt(0) }}</div>
+        <div class="cds-detail-card__info">
+          <h2>{{ customer.name }}</h2>
+          <p *ngIf="customer.mobile">{{ customer.mobile }}</p>
+        </div>
+        <div class="cds-detail-card__balance">
+          <span class="cds-detail-card__balance-label">Current Balance</span>
+          <span class="cds-detail-card__balance-value"
+            [class.cds-detail-card__balance-value--debit]="customer.currentBalance > 0"
+            [class.cds-detail-card__balance-value--credit]="customer.currentBalance <= 0">
+            ₹{{ customer.currentBalance.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Transaction Inline -->
+    <div class="cds-inline-action">
+      <button class="cds-btn cds-btn--primary" *ngIf="!showAddTransaction" (click)="toggleAddTransaction()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        Add transaction
+      </button>
+
+      <div class="cds-inline-form" *ngIf="showAddTransaction">
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="transactionError">
+          <p>{{ transactionError }}</p>
+        </div>
+        <div class="cds-inline-form__row">
+          <div class="cds-form-item">
+            <label class="cds-label">Type</label>
+            <select class="cds-select" [(ngModel)]="transactionData.type">
+              <option value="DEBIT">Debit (Given)</option>
+              <option value="CREDIT">Credit (Received)</option>
+            </select>
+          </div>
+          <div class="cds-form-item">
+            <label class="cds-label">Amount</label>
+            <input class="cds-text-input" type="number" [(ngModel)]="transactionData.amount" placeholder="Amount" step="0.01" />
+          </div>
+          <div class="cds-form-item cds-form-item--grow">
+            <label class="cds-label">Description</label>
+            <input class="cds-text-input" type="text" [(ngModel)]="transactionData.description" placeholder="Optional description" />
+          </div>
+        </div>
+        <div class="cds-inline-form__actions">
+          <button class="cds-btn cds-btn--primary cds-btn--sm" (click)="saveTransaction()">Add</button>
+          <button class="cds-btn cds-btn--secondary cds-btn--sm" (click)="toggleAddTransaction()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Ledger -->
+    <div class="cds-data-table-container">
+      <div class="cds-data-table-header">
+        <h4 class="cds-data-table-header__title">Transaction ledger</h4>
+        <p class="cds-data-table-header__desc">{{ transactions.length }} transaction{{ transactions.length !== 1 ? 's' : '' }}</p>
+      </div>
+
+      <div *ngIf="transactions.length === 0" class="cds-empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+        <h3>No transactions yet</h3>
+        <p>Add the first transaction for {{ customer.name }}</p>
+      </div>
+
+      <table class="cds-data-table" *ngIf="transactions.length > 0">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th class="text-right">Amount</th>
+            <th class="text-right">Balance After</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tx of transactions">
+            <td>{{ formatDate(tx.createdAt) }}</td>
+            <td>
+              <span [class]="tx.type === 'DEBIT' ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
+                {{ tx.type }}
+              </span>
+            </td>
+            <td class="cds-data-table__cell--secondary">{{ tx.description || '—' }}</td>
+            <td class="text-right">
+              <span [class]="tx.type === 'DEBIT' ? 'cds-amount cds-amount--debit' : 'cds-amount cds-amount--credit'">
+                {{ tx.type === 'DEBIT' ? '+' : '-' }}₹{{ tx.amount.toFixed(2) }}
+              </span>
+            </td>
+            <td class="text-right font-mono">₹{{ tx.balanceAfter ? tx.balanceAfter.toFixed(2) : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="cds-loading" *ngIf="loading">
+    <div class="cds-loading__bar"></div>
+    <p class="cds-loading__text">Loading customer details...</p>
+  </div>
+</app-layout>

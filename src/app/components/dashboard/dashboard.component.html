@@ -1,0 +1,120 @@
+<app-layout>
+  <div class="cds-content__header">
+    <h2>Dashboard</h2>
+    <p>Overview of your credit management</p>
+  </div>
+
+  <!-- Stats Tiles -->
+  <div class="cds-tile-grid" *ngIf="!loading && stats">
+    <div class="cds-stat-tile" tabindex="0">
+      <div class="cds-stat-tile__icon cds-stat-tile__icon--blue" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="cds-stat-tile__body">
+        <span class="cds-stat-tile__label">Total Customers</span>
+        <span class="cds-stat-tile__value">{{ stats.totalCustomers }}</span>
+      </div>
+    </div>
+
+    <div class="cds-stat-tile" tabindex="0">
+      <div class="cds-stat-tile__icon cds-stat-tile__icon--red" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+        </svg>
+      </div>
+      <div class="cds-stat-tile__body">
+        <span class="cds-stat-tile__label">Total Debit</span>
+        <span class="cds-stat-tile__value cds-stat-tile__value--danger">₹{{ stats.totalDebit.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="cds-stat-tile" tabindex="0">
+      <div class="cds-stat-tile__icon cds-stat-tile__icon--green" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+        </svg>
+      </div>
+      <div class="cds-stat-tile__body">
+        <span class="cds-stat-tile__label">Total Credit</span>
+        <span class="cds-stat-tile__value cds-stat-tile__value--success">₹{{ stats.totalCredit.toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="cds-stat-tile" tabindex="0">
+      <div class="cds-stat-tile__icon cds-stat-tile__icon--purple" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+      </div>
+      <div class="cds-stat-tile__body">
+        <span class="cds-stat-tile__label">Outstanding Balance</span>
+        <span class="cds-stat-tile__value">₹{{ stats.totalOutstanding.toFixed(2) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="cds-quick-actions" *ngIf="!loading">
+    <button class="cds-btn cds-btn--primary" (click)="goAddCustomer()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+      Add customer
+    </button>
+    <button class="cds-btn cds-btn--secondary" (click)="goAddTransaction()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+      Add transaction
+    </button>
+  </div>
+
+  <!-- Dashboard Sections -->
+  <div class="cds-dashboard-grid" *ngIf="!loading">
+    <!-- Recent Transactions -->
+    <div class="cds-dashboard-card">
+      <div class="cds-dashboard-card__header">
+        <h4>Recent transactions</h4>
+        <a routerLink="/transactions" class="cds-dashboard-card__link">View all</a>
+      </div>
+      <div class="cds-dashboard-card__body" *ngIf="recentTransactions.length > 0">
+        <div class="cds-recent-row" *ngFor="let tx of recentTransactions">
+          <div class="cds-recent-row__info">
+            <span class="cds-recent-row__name">{{ tx.name }}</span>
+            <span class="cds-recent-row__type" [class.cds-recent-row__type--debit]="tx.type === 'DEBIT'" [class.cds-recent-row__type--credit]="tx.type === 'CREDIT'">
+              {{ tx.type }}
+            </span>
+          </div>
+          <span class="cds-recent-row__amount" [class.cds-amount--debit]="tx.type === 'DEBIT'" [class.cds-amount--credit]="tx.type === 'CREDIT'">
+            {{ tx.type === 'DEBIT' ? '+' : '-' }}₹{{ tx.amount.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+      <div class="cds-dashboard-card__empty" *ngIf="recentTransactions.length === 0">
+        <p>No recent transactions</p>
+      </div>
+    </div>
+
+    <!-- Top Debtors -->
+    <div class="cds-dashboard-card">
+      <div class="cds-dashboard-card__header">
+        <h4>Top debtors</h4>
+        <a routerLink="/customers" class="cds-dashboard-card__link">View all</a>
+      </div>
+      <div class="cds-dashboard-card__body" *ngIf="topDebtors.length > 0">
+        <div class="cds-debtor-row" *ngFor="let debtor of topDebtors; let i = index">
+          <div class="cds-debtor-row__rank">{{ i + 1 }}</div>
+          <span class="cds-debtor-row__name">{{ debtor.name }}</span>
+          <span class="cds-debtor-row__balance">₹{{ debtor.balance.toFixed(2) }}</span>
+        </div>
+      </div>
+      <div class="cds-dashboard-card__empty" *ngIf="topDebtors.length === 0">
+        <p>No debtors</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div class="cds-loading" *ngIf="loading">
+    <div class="cds-loading__bar"></div>
+    <p class="cds-loading__text">Loading dashboard...</p>
+  </div>
+</app-layout>

@@ -1,0 +1,22 @@
+<div class="cds-toast-container" aria-live="polite">
+  <div
+    *ngFor="let toast of toasts$ | async"
+    class="cds-toast"
+    [ngClass]="'cds-toast--' + toast.type"
+    role="status">
+    <div class="cds-toast__icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+        <path [attr.d]="getIcon(toast.type)"/>
+      </svg>
+    </div>
+    <div class="cds-toast__content">
+      <p class="cds-toast__title">{{ toast.title }}</p>
+      <p class="cds-toast__subtitle" *ngIf="toast.message">{{ toast.message }}</p>
+    </div>
+    <button class="cds-toast__close" (click)="dismiss(toast.id)" aria-label="Dismiss">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+        <path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/>
+      </svg>
+    </button>
+  </div>
+</div>
