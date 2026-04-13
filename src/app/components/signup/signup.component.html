@@ -1,0 +1,125 @@
+<div class="signup-container">
+  <div class="signup-card">
+    <div class="logo-section">
+      <div class="logo">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="40"
+          height="40"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path
+            d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+          />
+        </svg>
+      </div>
+      <h1>Create Account</h1>
+      <p class="subtitle">Sign up to start managing your credit book</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="signup-form">
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="shopName">Shop Name</label>
+          <input
+            type="text"
+            id="shopName"
+            [(ngModel)]="signupData.shopName"
+            name="shopName"
+            placeholder="Enter shop name"
+            required
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="ownerName">Owner Name</label>
+          <input
+            type="text"
+            id="ownerName"
+            [(ngModel)]="signupData.ownerName"
+            name="ownerName"
+            placeholder="Enter owner name"
+            required
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="mobile">Mobile Number</label>
+          <input
+            type="text"
+            id="mobile"
+            [(ngModel)]="signupData.mobile"
+            name="mobile"
+            placeholder="Enter mobile"
+            required
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            [(ngModel)]="signupData.email"
+            name="email"
+            placeholder="Enter email"
+            required
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            [(ngModel)]="signupData.password"
+            name="password"
+            placeholder="Enter password"
+            required
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="confirmpassword">Confirm Password</label>
+          <input
+            type="password"
+            id="confirmpassword"
+            [(ngModel)]="signupData.confirmPassword"
+            name="confirmPassword"
+            placeholder="Confirm password"
+            required
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        {{ loading ? "Creating account..." : "Sign Up" }}
+      </button>
+
+      <p class="login-link">
+        Already have an account?
+        <a routerLink="/login">Login</a>
+      </p>
+    </form>
+  </div>
+</div>

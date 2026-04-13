@@ -1,0 +1,239 @@
+<div class="dashboard-container" (click)="closeProfileDropdown()">
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Digital Khata Book</h1>
+          <p class="shop-name">{{ user?.shopname }}</p>
+        </div>
+      </div>
+      <div class="user-section">
+        <div class="profile-wrapper" (click)="$event.stopPropagation()">
+          <div class="profile-avatar" (click)="toggleProfileDropdown()" [title]="user?.ownername">
+            {{ user?.ownername ? (user.ownername.charAt(0) + user.ownername.charAt(user.ownername.length - 1)) : 'U' }}
+          </div>
+          
+          <div class="profile-dropdown" *ngIf="showProfileDropdown">
+            <div class="profile-dropdown-header">
+              <div class="profile-avatar-large">
+                {{ user?.ownername ? (user.ownername.charAt(0) + user.ownername.charAt(user.ownername.length - 1)) : 'U' }}
+              </div>
+              <div class="profile-info">
+                <p class="profile-name">{{ user?.ownername }}</p>
+                <p class="profile-email">{{ user?.email }}</p>
+              </div>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <div class="profile-dropdown-body">
+              <div class="profile-detail">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>{{ user?.ownername }}</span>
+              </div>
+              <div class="profile-detail">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+                </svg>
+                <span>{{ user?.mobile }}</span>
+              </div>
+              <div class="profile-detail">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+                <span>{{ user?.shopname }}</span>
+              </div>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <div class="profile-dropdown-footer">
+              <button class="btn-logout-dropdown" (click)="logout()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="navbar">
+    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/customers" routerLinkActive="active">Customer List</a>
+    <a routerLink="/transactions" routerLinkActive="active">Transactions</a>
+    <a routerLink="/reports" routerLinkActive="active">Reports</a>
+  </nav>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>Customers</h2>
+        <p>Manage your customer list</p>
+      </div>
+      <button class="btn-primary" (click)="openDialog()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Add Customer
+      </button>
+    </div>
+
+    <div class="card" *ngIf="!loading">
+      <div class="card-header">
+        <h3>Customer List</h3>
+      </div>
+      <div class="card-content">
+        <div *ngIf="customers.length === 0" class="empty-state">
+          <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+          </svg>
+          <h3>No customers yet</h3>
+          <p>Get started by adding your first customer</p>
+          <button class="btn-primary" (click)="openDialog()">Add Customer</button>
+        </div>
+
+        <table class="data-table" *ngIf="customers.length > 0">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Mobile</th>
+              <th class="text-right">Balance</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let customer of customers">
+              <td class="font-medium">{{ customer.name }}</td>
+              <td>{{ customer.mobile }}</td>
+              <td class="text-right">
+                <span [class]="customer.balance > 0 ? 'balance-debit' : 'balance-credit'">
+                  ₹{{ customer.balance.toFixed(2) }}
+                </span>
+              </td>
+              <td class="text-right">
+                <div class="action-buttons">
+                  <button class="btn-icon btn-transaction" (click)="openTransactionDialog(customer)" title="Add Transaction">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                  </button>
+                  <button class="btn-icon" (click)="openDialog(customer)" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button class="btn-icon btn-danger" (click)="openDeleteDialog(customer)" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="loading">Loading customers...</div>
+  </main>
+
+  <!-- Add/Edit Customer Dialog -->
+  <div class="modal-overlay" *ngIf="showDialog" (click)="closeDialog()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCustomer ? 'Edit Customer' : 'Add Customer' }}</h3>
+        <button class="btn-close" (click)="closeDialog()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="error-message" *ngIf="error">{{ error }}</div>
+        
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="customerData.name" placeholder="Enter customer name" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" [(ngModel)]="customerData.mobile" placeholder="Enter mobile number" class="form-input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDialog()">Cancel</button>
+        <button class="btn-primary" (click)="saveCustomer()">
+          {{ editingCustomer ? 'Update' : 'Add' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div class="modal-overlay" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Delete Customer</h3>
+        <button class="btn-close" (click)="closeDeleteDialog()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-message">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="warning-icon">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>Are you sure you want to delete <strong>{{ deletingCustomer?.name }}</strong>?</p>
+          <p class="warning-text">This will also delete all associated transactions. This action cannot be undone.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDeleteDialog()">Cancel</button>
+        <button class="btn-danger-solid" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Transaction Dialog -->
+  <div class="modal-overlay" *ngIf="showTransactionDialog" (click)="closeTransactionDialog()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Transaction for {{ transactionCustomer?.name }}</h3>
+        <button class="btn-close" (click)="closeTransactionDialog()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="error-message" *ngIf="transactionError">{{ transactionError }}</div>
+        
+        <div class="customer-info-box">
+          <p><strong>Customer:</strong> {{ transactionCustomer?.name }}</p>
+          <p><strong>Current Balance:</strong> <span [class]="(transactionCustomer?.balance || 0) > 0 ? 'balance-debit' : 'balance-credit'">₹{{ transactionCustomer ? transactionCustomer.balance.toFixed(2) : "0.00" }}</span></p>
+        </div>
+
+        <div class="form-group">
+          <label>Transaction Type</label>
+          <select [(ngModel)]="transactionData.type" class="form-input">
+            <option value="debit">Debit (Given/Credit to Customer)</option>
+            <option value="credit">Credit (Received/Payment from Customer)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Amount</label>
+          <input type="number" [(ngModel)]="transactionData.amount" placeholder="Enter amount" class="form-input" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <input type="text" [(ngModel)]="transactionData.description" placeholder="Enter description" class="form-input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeTransactionDialog()">Cancel</button>
+        <button class="btn-primary" (click)="saveTransaction()">Add Transaction</button>
+      </div>
+    </div>
+  </div>
+</div>
