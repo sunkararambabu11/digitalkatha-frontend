@@ -15,24 +15,38 @@
         <div class="cds-detail-card__info">
           <h2>{{ customer.name }}</h2>
           <p *ngIf="customer.mobile">{{ customer.mobile }}</p>
+          <p class="cds-detail-card__description" *ngIf="customer.description">{{ customer.description }}</p>
+          <p class="cds-detail-card__meta" *ngIf="customer.createdAt">Customer since {{ formatShortDate(customer.createdAt) }}</p>
         </div>
-        <div class="cds-detail-card__balance">
-          <span class="cds-detail-card__balance-label">Current Balance</span>
-          <span class="cds-detail-card__balance-value"
-            [class.cds-detail-card__balance-value--debit]="customer.currentBalance > 0"
-            [class.cds-detail-card__balance-value--credit]="customer.currentBalance <= 0">
-            ₹{{ customer.currentBalance.toFixed(2) }}
-          </span>
+        <div class="cds-detail-card__stats">
+          <div class="cds-detail-card__stat" *ngIf="customer.openingBalance !== undefined && customer.openingBalance !== null">
+            <span class="cds-detail-card__stat-label">Opening Balance</span>
+            <span class="cds-detail-card__stat-value font-mono">₹{{ customer.openingBalance.toFixed(2) }}</span>
+          </div>
+          <div class="cds-detail-card__stat">
+            <span class="cds-detail-card__stat-label">Current Balance</span>
+            <span class="cds-detail-card__stat-value"
+              [class.cds-detail-card__balance-value--debit]="customer.currentBalance > 0"
+              [class.cds-detail-card__balance-value--credit]="customer.currentBalance <= 0">
+              ₹{{ customer.currentBalance.toFixed(2) }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Add Transaction Inline -->
+    <!-- Add Transaction + Download PDF -->
     <div class="cds-inline-action">
-      <button class="cds-btn cds-btn--primary" *ngIf="!showAddTransaction" (click)="toggleAddTransaction()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
-        Add transaction
-      </button>
+      <div class="cds-inline-action__left">
+        <button class="cds-btn cds-btn--primary" *ngIf="!showAddTransaction" (click)="toggleAddTransaction()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+          Add transaction
+        </button>
+        <button class="cds-btn cds-btn--ghost" (click)="downloadLedgerPdf()" [disabled]="downloadingPdf">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4z"/><path d="M26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+          {{ downloadingPdf ? 'Downloading...' : 'Download PDF' }}
+        </button>
+      </div>
 
       <div class="cds-inline-form" *ngIf="showAddTransaction">
         <div class="cds-inline-notification cds-inline-notification--error" *ngIf="transactionError">

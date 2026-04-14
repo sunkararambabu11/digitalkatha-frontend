@@ -53,6 +53,11 @@
             <span class="cds-sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
           </th>
           <th>Mobile</th>
+          <th>Description</th>
+          <th class="text-right cds-data-table__sortable" (click)="sort('openingBalance')">
+            Opening Bal.
+            <span class="cds-sort-icon" *ngIf="sortField === 'openingBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+          </th>
           <th class="text-right cds-data-table__sortable" (click)="sort('currentBalance')">
             Balance
             <span class="cds-sort-icon" *ngIf="sortField === 'currentBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
@@ -62,8 +67,15 @@
       </thead>
       <tbody>
         <tr *ngFor="let customer of paginatedCustomers" class="cds-data-table__row--clickable" (click)="navigateToDetail(customer)">
-          <td class="cds-data-table__cell--bold">{{ customer.name }}</td>
+          <td class="cds-data-table__cell--bold">
+            {{ customer.name }}
+            <span class="cds-cell-meta" *ngIf="customer.createdAt">Since {{ formatDate(customer.createdAt) }}</span>
+          </td>
           <td>{{ customer.mobile }}</td>
+          <td class="cds-data-table__cell--secondary">{{ customer.description || '—' }}</td>
+          <td class="text-right">
+            <span class="font-mono">₹{{ (customer.openingBalance || 0).toFixed(2) }}</span>
+          </td>
           <td class="text-right">
             <span [class]="customer.currentBalance > 0 ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
               ₹{{ customer.currentBalance.toFixed(2) }}
@@ -136,6 +148,14 @@
         <div class="cds-form-item">
           <label class="cds-label">Mobile number</label>
           <input class="cds-text-input" type="text" [(ngModel)]="customerData.mobile" placeholder="Enter mobile number" />
+        </div>
+        <div class="cds-form-item" *ngIf="!editingCustomer">
+          <label class="cds-label">Opening balance (optional)</label>
+          <input class="cds-text-input" type="number" [(ngModel)]="customerData.openingBalance" placeholder="0.00" step="0.01" />
+        </div>
+        <div class="cds-form-item">
+          <label class="cds-label">Description (optional)</label>
+          <input class="cds-text-input" type="text" [(ngModel)]="customerData.description" placeholder="E.g. Shop name, address, notes" />
         </div>
       </div>
       <div class="cds-modal__footer">

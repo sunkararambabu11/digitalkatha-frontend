@@ -145,6 +145,22 @@
     </div>
   </div>
 
+  <!-- Monthly Trends -->
+  <div class="cds-dashboard-card cds-monthly-card" *ngIf="!loading && summary && monthlyEntries.length > 0">
+    <div class="cds-dashboard-card__header">
+      <h4>Monthly transaction volume</h4>
+    </div>
+    <div class="cds-monthly-chart">
+      <div class="cds-monthly-bar-group" *ngFor="let entry of monthlyEntries">
+        <div class="cds-monthly-bar-wrapper">
+          <div class="cds-monthly-bar" [style.height.%]="(entry.amount / maxMonthlyAmount) * 100"></div>
+        </div>
+        <span class="cds-monthly-label">{{ entry.month.substring(0, 3) }}</span>
+        <span class="cds-monthly-value">₹{{ entry.amount >= 1000 ? (entry.amount / 1000).toFixed(1) + 'K' : entry.amount.toFixed(0) }}</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading Skeleton -->
   <div class="cds-loading" *ngIf="loading">
     <div class="cds-loading__bar"></div>

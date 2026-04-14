@@ -17,6 +17,8 @@ export class DashboardComponent implements OnInit {
   summary: DashboardSummary | null = null;
   loading: boolean = true;
   downloading: boolean = false;
+  monthlyEntries: { month: string; amount: number }[] = [];
+  maxMonthlyAmount: number = 0;
 
   constructor(
     private apiService: ApiService,
@@ -32,6 +34,14 @@ export class DashboardComponent implements OnInit {
     this.apiService.getDashboardFullSummary().subscribe({
       next: (data) => {
         this.summary = data;
+        // Process monthly data for chart
+        if (data.monthlyData) {
+          this.monthlyEntries = Object.entries(data.monthlyData).map(([month, amount]) => ({
+            month: month.charAt(0) + month.slice(1).toLowerCase(),
+            amount
+          }));
+          this.maxMonthlyAmount = Math.max(...this.monthlyEntries.map(e => e.amount), 1);
+        }
         this.loading = false;
       },
       error: () => {

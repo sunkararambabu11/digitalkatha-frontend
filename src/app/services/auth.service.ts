@@ -35,7 +35,7 @@ export class AuthService {
         // Signup API returns user data but no token.
         // Store user info so login page can pre-fill, then redirect to login.
         const user: User = {
-          id: String(response.id),
+          id: response.id,
           shopName: response.shopName,
           ownerName: response.ownerName,
           mobile: response.mobile,
@@ -54,7 +54,7 @@ export class AuthService {
         // Login API returns: { userId, shopName, token, message }
         localStorage.setItem('token', response.token);
         const user: User = {
-          id: String(response.userId),
+          id: response.userId,
           shopName: response.shopName,
           ownerName: '',
           mobile: '',

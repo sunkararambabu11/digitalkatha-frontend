@@ -172,7 +172,9 @@ export class CustomersComponent implements OnInit {
 
   openDialog(customer: Customer | null = null): void {
     this.editingCustomer = customer;
-    this.customerData = customer ? { name: customer.name, mobile: customer.mobile || '' } : { name: '', mobile: '' };
+    this.customerData = customer
+      ? { name: customer.name, mobile: customer.mobile || '', description: customer.description || '' }
+      : { name: '', mobile: '', openingBalance: 0, description: '' };
     this.error = '';
     this.showDialog = true;
   }
@@ -180,7 +182,7 @@ export class CustomersComponent implements OnInit {
   closeDialog(): void {
     this.showDialog = false;
     this.editingCustomer = null;
-    this.customerData = { name: '', mobile: '' };
+    this.customerData = { name: '', mobile: '', openingBalance: 0, description: '' };
     this.error = '';
   }
 
@@ -271,6 +273,16 @@ export class CustomersComponent implements OnInit {
       error: () => {
         this.transactionError = 'Failed to create transaction';
       }
+    });
+  }
+
+  formatDate(dateString?: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
     });
   }
 }

@@ -80,6 +80,7 @@
             Amount
             <span class="cds-sort-icon" *ngIf="sortField === 'amount'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
           </th>
+          <th class="text-right">Balance After</th>
           <th class="text-right">Actions</th>
         </tr>
       </thead>
@@ -98,6 +99,7 @@
               {{ transaction.type === 'DEBIT' ? '+' : '-' }}₹{{ transaction.amount.toFixed(2) }}
             </span>
           </td>
+          <td class="text-right font-mono">{{ transaction.balanceAfter !== undefined && transaction.balanceAfter !== null ? '₹' + transaction.balanceAfter.toFixed(2) : '—' }}</td>
           <td class="text-right">
             <div class="cds-action-group">
               <button class="cds-btn-icon" (click)="openEditDialog(transaction)" title="Edit">

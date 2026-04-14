@@ -3,6 +3,11 @@ export interface Customer {
   name: string;
   currentBalance: number;
   mobile?: string;
+  userId?: number;
+  openingBalance?: number;
+  description?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CustomerRequest {

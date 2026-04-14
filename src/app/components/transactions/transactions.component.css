@@ -125,12 +125,13 @@
 
 .cds-data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .cds-data-table thead { background-color: #e0e0e0; }
-.cds-data-table th:nth-child(1) { width: 16%; }
-.cds-data-table th:nth-child(2) { width: 18%; }
-.cds-data-table th:nth-child(3) { width: 10%; }
-.cds-data-table th:nth-child(4) { width: 26%; }
-.cds-data-table th:nth-child(5) { width: 15%; }
-.cds-data-table th:nth-child(6) { width: 15%; }
+.cds-data-table th:nth-child(1) { width: 14%; }
+.cds-data-table th:nth-child(2) { width: 15%; }
+.cds-data-table th:nth-child(3) { width: 9%; }
+.cds-data-table th:nth-child(4) { width: 20%; }
+.cds-data-table th:nth-child(5) { width: 12%; }
+.cds-data-table th:nth-child(6) { width: 13%; }
+.cds-data-table th:nth-child(7) { width: 17%; }
 .cds-data-table th {
   padding: var(--cds-spacing-03) var(--cds-spacing-05);
   text-align: left; font-size: var(--cds-label-01-size); font-weight: 600;
@@ -157,6 +158,7 @@
 .cds-amount { font-family: var(--cds-font-family-mono); font-size: var(--cds-body-short-01-size); font-weight: 600; }
 .cds-amount--debit { color: var(--cds-support-error); }
 .cds-amount--credit { color: var(--cds-support-success); }
+.font-mono { font-family: var(--cds-font-family-mono); }
 
 /* Action Buttons */
 .cds-action-group { display: flex; justify-content: flex-end; gap: 0; }
@@ -317,7 +319,7 @@
   .cds-toolbar-filter { width: 100%; }
   .cds-select--inline { flex: 1; }
   .cds-data-table-container { overflow-x: auto; }
-  .cds-data-table { min-width: 800px; }
+  .cds-data-table { min-width: 900px; }
   .cds-search-wrapper { max-width: none; }
   .cds-pagination { flex-direction: column; gap: var(--cds-spacing-03); align-items: flex-start; }
   .cds-pagination__right { align-self: flex-end; }

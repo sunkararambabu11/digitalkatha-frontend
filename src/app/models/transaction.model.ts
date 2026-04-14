@@ -18,13 +18,6 @@ export interface TransactionRequest {
   description?: string;
 }
 
-export interface DashboardStats {
-  totalCustomers: number;
-  totalDebit: number;
-  totalCredit: number;
-  totalOutstanding: number;
-}
-
 export interface RecentTransaction {
   name: string;
   type: string;

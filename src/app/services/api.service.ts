@@ -5,7 +5,6 @@ import { Customer, CustomerRequest } from '../models/customer.model';
 import {
   Transaction,
   TransactionRequest,
-  DashboardStats,
   DashboardSummary,
 } from '../models/transaction.model';
 
@@ -27,12 +26,18 @@ export class ApiService {
 
   // ============================================================
   // Customer APIs
-  // Backend: GET/POST /api/customers, PUT/DELETE /api/customers/{id}
+  // Backend: GET/POST /api/customers, GET/PUT/DELETE /api/customers/{id}
   // ============================================================
   getCustomers(): Observable<Customer[]> {
     return this.http.get<Customer[]>(`${this.apiUrl}/customers`, {
       headers: this.getHeaders(),
     }).pipe(catchError(() => of([])));
+  }
+
+  getCustomerById(id: number): Observable<Customer> {
+    return this.http.get<Customer>(`${this.apiUrl}/customers/${id}`, {
+      headers: this.getHeaders(),
+    });
   }
 
   createCustomer(data: CustomerRequest): Observable<Customer> {
@@ -57,15 +62,23 @@ export class ApiService {
   // Transaction APIs
   // Backend: POST /api/transactions (create)
   // Backend: GET  /api/transactions/customer/{customerId} (per-customer ledger)
+  // Backend: PUT  /api/transactions/{id} (update)
+  // Backend: DELETE /api/transactions/{id} (delete)
   // Backend has NO "get all transactions" endpoint.
   // ============================================================
-  getTransactions(customerId?: number | string): Observable<Transaction[]> {
+  getTransactions(customerId?: number | string, customerName?: string): Observable<Transaction[]> {
     if (customerId) {
-      // Single customer ledger
+      // Single customer ledger — attach customerName if provided
       return this.http.get<Transaction[]>(
         `${this.apiUrl}/transactions/customer/${customerId}`,
         { headers: this.getHeaders() }
-      ).pipe(catchError(() => of([])));
+      ).pipe(
+        map(txns => customerName
+          ? txns.map(t => ({ ...t, customerName }))
+          : txns
+        ),
+        catchError(() => of([]))
+      );
     }
 
     // "All transactions" — fetch each customer's ledger and merge.
@@ -118,18 +131,8 @@ export class ApiService {
 
   // ============================================================
   // Dashboard APIs
-  // Backend: GET /api/dashboard (basic stats — backward compat)
   // Backend: GET /api/dashboard/summary (full combined summary)
-  // Backend: GET /api/dashboard/top-debtors -> [{name, balance}]
-  // Backend: GET /api/dashboard/recent -> [{name, type, amount, date, description}]
-  // Backend: GET /api/dashboard/monthly -> {MONTH: amount}
   // ============================================================
-  getDashboardSummary(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiUrl}/dashboard`, {
-      headers: this.getHeaders(),
-    }).pipe(catchError(() => of({ totalCustomers: 0, totalDebit: 0, totalCredit: 0, totalOutstanding: 0 })));
-  }
-
   getDashboardFullSummary(): Observable<DashboardSummary> {
     return this.http.get<DashboardSummary>(`${this.apiUrl}/dashboard/summary`, {
       headers: this.getHeaders(),
@@ -139,18 +142,6 @@ export class ApiService {
       todayTransactionCount: 0, todayDebit: 0, todayCredit: 0,
       topDebtors: [], recentTransactions: [], monthlyData: {}
     })));
-  }
-
-  getTopDebtors(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/dashboard/top-debtors`, {
-      headers: this.getHeaders(),
-    }).pipe(catchError(() => of([])));
-  }
-
-  getRecentTransactions(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/dashboard/recent`, {
-      headers: this.getHeaders(),
-    }).pipe(catchError(() => of([])));
   }
 
   // ============================================================

@@ -68,12 +68,31 @@
   margin: 0;
 }
 
-.cds-detail-card__balance {
-  text-align: right;
+.cds-detail-card__description {
+  font-size: var(--cds-label-01-size) !important;
+  color: var(--cds-text-helper) !important;
+  margin-top: var(--cds-spacing-02) !important;
+  font-style: italic;
+}
+
+.cds-detail-card__meta {
+  font-size: var(--cds-label-01-size) !important;
+  color: var(--cds-text-placeholder) !important;
+  margin-top: var(--cds-spacing-01) !important;
+  letter-spacing: 0.32px;
+}
+
+.cds-detail-card__stats {
+  display: flex;
+  gap: var(--cds-spacing-07);
   flex-shrink: 0;
 }
 
-.cds-detail-card__balance-label {
+.cds-detail-card__stat {
+  text-align: right;
+}
+
+.cds-detail-card__stat-label {
   display: block;
   font-size: var(--cds-label-01-size);
   color: var(--cds-text-secondary);
@@ -81,7 +100,7 @@
   margin-bottom: var(--cds-spacing-02);
 }
 
-.cds-detail-card__balance-value {
+.cds-detail-card__stat-value {
   font-family: var(--cds-font-family-mono);
   font-size: var(--cds-heading-04-size);
   font-weight: 600;
@@ -98,6 +117,12 @@
 /* Inline Action / Add Transaction */
 .cds-inline-action {
   margin-bottom: var(--cds-spacing-06);
+}
+
+.cds-inline-action__left {
+  display: flex;
+  gap: 1px;
+  align-items: center;
 }
 
 .cds-inline-form {
@@ -164,6 +189,22 @@
 
 .cds-btn--secondary:hover {
   background-color: #4c4c4c;
+}
+
+.cds-btn--ghost {
+  background-color: transparent;
+  color: var(--cds-link-primary);
+  border: none;
+}
+
+.cds-btn--ghost:hover {
+  background-color: var(--cds-layer-hover-01);
+  color: var(--cds-link-primary-hover);
+}
+
+.cds-btn--ghost:disabled {
+  color: var(--cds-text-disabled);
+  cursor: not-allowed;
 }
 
 .cds-btn--sm {
@@ -447,7 +488,10 @@
 /* Responsive */
 @media (max-width: 671px) {
   .cds-detail-card__header { flex-direction: column; align-items: flex-start; }
-  .cds-detail-card__balance { text-align: left; }
+  .cds-detail-card__stats { flex-direction: column; gap: var(--cds-spacing-04); }
+  .cds-detail-card__stat { text-align: left; }
+  .cds-inline-action__left { flex-direction: column; width: 100%; }
+  .cds-inline-action__left .cds-btn { width: 100%; justify-content: center; }
   .cds-inline-form__row { grid-template-columns: 1fr; }
   .cds-data-table-container { overflow-x: auto; }
   .cds-data-table { min-width: 600px; }

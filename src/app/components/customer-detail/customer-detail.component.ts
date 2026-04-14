@@ -45,6 +45,7 @@ export class CustomerDetailComponent implements OnInit {
     description: ''
   };
   transactionError: string = '';
+  downloadingPdf: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -61,16 +62,12 @@ export class CustomerDetailComponent implements OnInit {
   loadData(): void {
     this.loading = true;
 
-    // Load customer info
-    this.apiService.getCustomers().subscribe({
-      next: (customers) => {
-        this.customer = customers.find(c => c.id === this.customerId) || null;
-        if (!this.customer) {
-          this.router.navigate(['/customers']);
-          return;
-        }
-        // Load transactions
-        this.apiService.getTransactions(this.customerId).subscribe({
+    // Load customer info by ID (instead of loading all customers)
+    this.apiService.getCustomerById(this.customerId).subscribe({
+      next: (customer) => {
+        this.customer = customer;
+        // Load transactions, passing customer name for display
+        this.apiService.getTransactions(this.customerId, customer.name).subscribe({
           next: (txns) => {
             this.transactions = txns;
             this.applyFilters();
@@ -235,5 +232,37 @@ export class CustomerDetailComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/customers']);
+  }
+
+  downloadLedgerPdf(): void {
+    if (!this.customer) return;
+    this.downloadingPdf = true;
+    this.apiService.downloadReport(this.customerId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const date = new Date().toISOString().split('T')[0];
+        a.download = `${this.customer!.name.replace(/\s+/g, '_')}_ledger_${date}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.downloadingPdf = false;
+        this.toastService.show('success', 'Ledger PDF downloaded');
+      },
+      error: () => {
+        this.downloadingPdf = false;
+        this.toastService.show('error', 'Failed to download PDF');
+      }
+    });
+  }
+
+  formatShortDate(dateString?: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
   }
 }
