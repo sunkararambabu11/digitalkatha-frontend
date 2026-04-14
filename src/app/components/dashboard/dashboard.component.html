@@ -5,7 +5,7 @@
   </div>
 
   <!-- Stats Tiles -->
-  <div class="cds-tile-grid" *ngIf="!loading && stats">
+  <div class="cds-tile-grid" *ngIf="!loading && summary">
     <div class="cds-stat-tile" tabindex="0">
       <div class="cds-stat-tile__icon cds-stat-tile__icon--blue" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -14,7 +14,8 @@
       </div>
       <div class="cds-stat-tile__body">
         <span class="cds-stat-tile__label">Total Customers</span>
-        <span class="cds-stat-tile__value">{{ stats.totalCustomers }}</span>
+        <span class="cds-stat-tile__value">{{ summary.totalCustomers }}</span>
+        <span class="cds-stat-tile__sub" *ngIf="summary.activeCustomers > 0">{{ summary.activeCustomers }} with outstanding</span>
       </div>
     </div>
 
@@ -26,7 +27,7 @@
       </div>
       <div class="cds-stat-tile__body">
         <span class="cds-stat-tile__label">Total Debit</span>
-        <span class="cds-stat-tile__value cds-stat-tile__value--danger">₹{{ stats.totalDebit.toFixed(2) }}</span>
+        <span class="cds-stat-tile__value cds-stat-tile__value--danger">₹{{ summary.totalDebit.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -38,7 +39,7 @@
       </div>
       <div class="cds-stat-tile__body">
         <span class="cds-stat-tile__label">Total Credit</span>
-        <span class="cds-stat-tile__value cds-stat-tile__value--success">₹{{ stats.totalCredit.toFixed(2) }}</span>
+        <span class="cds-stat-tile__value cds-stat-tile__value--success">₹{{ summary.totalCredit.toFixed(2) }}</span>
       </div>
     </div>
 
@@ -50,8 +51,27 @@
       </div>
       <div class="cds-stat-tile__body">
         <span class="cds-stat-tile__label">Outstanding Balance</span>
-        <span class="cds-stat-tile__value">₹{{ stats.totalOutstanding.toFixed(2) }}</span>
+        <span class="cds-stat-tile__value">₹{{ summary.totalOutstanding.toFixed(2) }}</span>
       </div>
+    </div>
+  </div>
+
+  <!-- Today's Activity Banner -->
+  <div class="cds-today-banner" *ngIf="!loading && summary && summary.todayTransactionCount > 0">
+    <div class="cds-today-banner__icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <div class="cds-today-banner__content">
+      <span class="cds-today-banner__title">Today's activity</span>
+      <span class="cds-today-banner__stats">
+        {{ summary.todayTransactionCount }} transaction{{ summary.todayTransactionCount !== 1 ? 's' : '' }}
+        <span class="cds-today-banner__separator">|</span>
+        <span class="cds-today-banner__debit">Debit: ₹{{ summary.todayDebit.toFixed(2) }}</span>
+        <span class="cds-today-banner__separator">|</span>
+        <span class="cds-today-banner__credit">Credit: ₹{{ summary.todayCredit.toFixed(2) }}</span>
+      </span>
     </div>
   </div>
 
@@ -74,19 +94,26 @@
   </div>
 
   <!-- Dashboard Sections -->
-  <div class="cds-dashboard-grid" *ngIf="!loading">
+  <div class="cds-dashboard-grid" *ngIf="!loading && summary">
     <!-- Recent Transactions -->
     <div class="cds-dashboard-card">
       <div class="cds-dashboard-card__header">
         <h4>Recent transactions</h4>
         <a routerLink="/transactions" class="cds-dashboard-card__link">View all</a>
       </div>
-      <div class="cds-dashboard-card__body" *ngIf="recentTransactions.length > 0">
-        <div class="cds-recent-row" *ngFor="let tx of recentTransactions">
-          <div class="cds-recent-row__info">
-            <span class="cds-recent-row__name">{{ tx.name }}</span>
-            <span class="cds-recent-row__type" [class.cds-recent-row__type--debit]="tx.type === 'DEBIT'" [class.cds-recent-row__type--credit]="tx.type === 'CREDIT'">
-              {{ tx.type }}
+      <div class="cds-dashboard-card__body" *ngIf="summary.recentTransactions.length > 0">
+        <div class="cds-recent-row" *ngFor="let tx of summary.recentTransactions">
+          <div class="cds-recent-row__left">
+            <div class="cds-recent-row__info">
+              <span class="cds-recent-row__name">{{ tx.name }}</span>
+              <span class="cds-recent-row__type" [class.cds-recent-row__type--debit]="tx.type === 'DEBIT'" [class.cds-recent-row__type--credit]="tx.type === 'CREDIT'">
+                {{ tx.type }}
+              </span>
+            </div>
+            <span class="cds-recent-row__meta" *ngIf="tx.description || tx.date">
+              <span *ngIf="tx.description">{{ tx.description }}</span>
+              <span *ngIf="tx.description && tx.date"> &middot; </span>
+              <span *ngIf="tx.date">{{ formatDate(tx.date) }}</span>
             </span>
           </div>
           <span class="cds-recent-row__amount" [class.cds-amount--debit]="tx.type === 'DEBIT'" [class.cds-amount--credit]="tx.type === 'CREDIT'">
@@ -94,7 +121,7 @@
           </span>
         </div>
       </div>
-      <div class="cds-dashboard-card__empty" *ngIf="recentTransactions.length === 0">
+      <div class="cds-dashboard-card__empty" *ngIf="summary.recentTransactions.length === 0">
         <p>No recent transactions</p>
       </div>
     </div>
@@ -105,14 +132,14 @@
         <h4>Top debtors</h4>
         <a routerLink="/customers" class="cds-dashboard-card__link">View all</a>
       </div>
-      <div class="cds-dashboard-card__body" *ngIf="topDebtors.length > 0">
-        <div class="cds-debtor-row" *ngFor="let debtor of topDebtors; let i = index">
+      <div class="cds-dashboard-card__body" *ngIf="summary.topDebtors.length > 0">
+        <div class="cds-debtor-row" *ngFor="let debtor of summary.topDebtors; let i = index">
           <div class="cds-debtor-row__rank">{{ i + 1 }}</div>
           <span class="cds-debtor-row__name">{{ debtor.name }}</span>
           <span class="cds-debtor-row__balance">₹{{ debtor.balance.toFixed(2) }}</span>
         </div>
       </div>
-      <div class="cds-dashboard-card__empty" *ngIf="topDebtors.length === 0">
+      <div class="cds-dashboard-card__empty" *ngIf="summary.topDebtors.length === 0">
         <p>No debtors</p>
       </div>
     </div>

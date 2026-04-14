@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
-import { DashboardStats } from '../../models/transaction.model';
+import { DashboardSummary } from '../../models/transaction.model';
 import { LayoutComponent } from '../layout/layout.component';
 
 @Component({
@@ -14,11 +14,9 @@ import { LayoutComponent } from '../layout/layout.component';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  stats: DashboardStats | null = null;
+  summary: DashboardSummary | null = null;
   loading: boolean = true;
   downloading: boolean = false;
-  recentTransactions: any[] = [];
-  topDebtors: any[] = [];
 
   constructor(
     private apiService: ApiService,
@@ -31,24 +29,14 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
-    this.apiService.getDashboardSummary().subscribe({
+    this.apiService.getDashboardFullSummary().subscribe({
       next: (data) => {
-        this.stats = data;
+        this.summary = data;
         this.loading = false;
       },
       error: () => {
         this.loading = false;
       }
-    });
-
-    this.apiService.getRecentTransactions().subscribe({
-      next: (data) => this.recentTransactions = data,
-      error: () => {}
-    });
-
-    this.apiService.getTopDebtors().subscribe({
-      next: (data) => this.topDebtors = data,
-      error: () => {}
     });
   }
 
@@ -78,6 +66,17 @@ export class DashboardComponent implements OnInit {
         this.downloading = false;
         this.toastService.show('error', 'Failed to download PDF');
       }
+    });
+  }
+
+  formatDate(dateStr?: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr.replace(' ', 'T'));
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   }
 }

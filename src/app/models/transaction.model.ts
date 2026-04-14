@@ -24,3 +24,30 @@ export interface DashboardStats {
   totalCredit: number;
   totalOutstanding: number;
 }
+
+export interface RecentTransaction {
+  name: string;
+  type: string;
+  amount: number;
+  date?: string;
+  description?: string;
+}
+
+export interface TopDebtor {
+  name: string;
+  balance: number;
+}
+
+export interface DashboardSummary {
+  totalCustomers: number;
+  activeCustomers: number;
+  totalDebit: number;
+  totalCredit: number;
+  totalOutstanding: number;
+  todayTransactionCount: number;
+  todayDebit: number;
+  todayCredit: number;
+  topDebtors: TopDebtor[];
+  recentTransactions: RecentTransaction[];
+  monthlyData: { [key: string]: number };
+}

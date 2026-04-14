@@ -6,6 +6,7 @@ import {
   Transaction,
   TransactionRequest,
   DashboardStats,
+  DashboardSummary,
 } from '../models/transaction.model';
 
 @Injectable({
@@ -117,15 +118,27 @@ export class ApiService {
 
   // ============================================================
   // Dashboard APIs
-  // Backend: GET /api/dashboard (not /dashboard/summary!)
+  // Backend: GET /api/dashboard (basic stats — backward compat)
+  // Backend: GET /api/dashboard/summary (full combined summary)
   // Backend: GET /api/dashboard/top-debtors -> [{name, balance}]
-  // Backend: GET /api/dashboard/recent -> [{name, type, amount}]
+  // Backend: GET /api/dashboard/recent -> [{name, type, amount, date, description}]
   // Backend: GET /api/dashboard/monthly -> {MONTH: amount}
   // ============================================================
   getDashboardSummary(): Observable<DashboardStats> {
     return this.http.get<DashboardStats>(`${this.apiUrl}/dashboard`, {
       headers: this.getHeaders(),
     }).pipe(catchError(() => of({ totalCustomers: 0, totalDebit: 0, totalCredit: 0, totalOutstanding: 0 })));
+  }
+
+  getDashboardFullSummary(): Observable<DashboardSummary> {
+    return this.http.get<DashboardSummary>(`${this.apiUrl}/dashboard/summary`, {
+      headers: this.getHeaders(),
+    }).pipe(catchError(() => of({
+      totalCustomers: 0, activeCustomers: 0,
+      totalDebit: 0, totalCredit: 0, totalOutstanding: 0,
+      todayTransactionCount: 0, todayDebit: 0, todayCredit: 0,
+      topDebtors: [], recentTransactions: [], monthlyData: {}
+    })));
   }
 
   getTopDebtors(): Observable<any[]> {
