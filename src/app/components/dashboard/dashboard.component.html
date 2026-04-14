@@ -57,13 +57,19 @@
 
   <!-- Quick Actions -->
   <div class="cds-quick-actions" *ngIf="!loading">
-    <button class="cds-btn cds-btn--primary" (click)="goAddCustomer()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
-      Add customer
-    </button>
-    <button class="cds-btn cds-btn--secondary" (click)="goAddTransaction()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
-      Add transaction
+    <div class="cds-quick-actions__left">
+      <button class="cds-btn cds-btn--primary" (click)="goAddCustomer()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        Add customer
+      </button>
+      <button class="cds-btn cds-btn--secondary" (click)="goAddTransaction()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
+        Add transaction
+      </button>
+    </div>
+    <button class="cds-btn cds-btn--ghost" (click)="downloadDashboard()" [disabled]="downloading">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4z"/><path d="M26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+      {{ downloading ? 'Downloading...' : 'Download PDF' }}
     </button>
   </div>
 

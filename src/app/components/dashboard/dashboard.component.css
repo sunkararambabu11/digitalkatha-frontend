@@ -85,9 +85,15 @@
 /* -- Quick Actions -- */
 .cds-quick-actions {
   display: flex;
-  gap: 1px;
+  justify-content: space-between;
+  align-items: center;
   margin-top: var(--cds-spacing-06);
   margin-bottom: var(--cds-spacing-06);
+}
+
+.cds-quick-actions__left {
+  display: flex;
+  gap: 1px;
 }
 
 .cds-btn {
@@ -134,6 +140,22 @@
   background-color: #4c4c4c;
   text-decoration: none;
   color: #ffffff;
+}
+
+.cds-btn--ghost {
+  background-color: transparent;
+  color: var(--cds-link-primary);
+  border: none;
+}
+
+.cds-btn--ghost:hover {
+  background-color: var(--cds-layer-hover-01);
+  color: var(--cds-link-primary-hover);
+}
+
+.cds-btn--ghost:disabled {
+  color: var(--cds-text-disabled);
+  cursor: not-allowed;
 }
 
 /* -- Dashboard Grid -- */
