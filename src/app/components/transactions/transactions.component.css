@@ -1,5 +1,6 @@
 /* ============================================================
    TRANSACTIONS — Data Table + Date Filters + Edit/Delete
+   + Search + Sort + Type Filter + Pagination
    (Shell/header/subnav CSS moved to layout.component.css)
    ============================================================ */
 
@@ -7,6 +8,80 @@
 .cds-content__header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--cds-spacing-06); flex-wrap: wrap; gap: var(--cds-spacing-05); }
 .cds-content__header h2 { margin-bottom: var(--cds-spacing-02); }
 .cds-content__header p { font-size: var(--cds-body-short-01-size); color: var(--cds-text-secondary); }
+
+/* -- Search Bar -- */
+.cds-search-bar {
+  margin-bottom: var(--cds-spacing-05);
+}
+
+.cds-search-wrapper {
+  position: relative;
+  max-width: 400px;
+}
+
+.cds-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cds-icon-secondary);
+  pointer-events: none;
+}
+
+.cds-search-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 48px 0 44px;
+  font-size: var(--cds-body-short-01-size);
+  font-family: var(--cds-font-family);
+  color: var(--cds-text-primary);
+  background-color: var(--cds-field-01);
+  border: none;
+  border-bottom: 1px solid var(--cds-border-strong);
+  border-radius: 0;
+  outline: none;
+  transition: border-color var(--cds-duration-fast-02) var(--cds-easing-standard);
+}
+
+.cds-search-input:hover { background-color: var(--cds-field-hover-01); }
+.cds-search-input:focus { outline: 2px solid var(--cds-focus); outline-offset: -2px; border-bottom-color: transparent; }
+.cds-search-input::placeholder { color: var(--cds-text-placeholder); }
+
+.cds-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--cds-icon-secondary);
+  cursor: pointer;
+}
+
+.cds-search-clear:hover {
+  background-color: var(--cds-layer-hover-01);
+  color: var(--cds-icon-primary);
+}
+
+/* -- Sort Icon -- */
+.cds-data-table__sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.cds-data-table__sortable:hover {
+  background-color: #d6d6d6;
+}
+
+.cds-sort-icon {
+  margin-left: 4px;
+  font-size: 0.75rem;
+}
 
 /* Buttons */
 .cds-btn { display: inline-flex; align-items: center; gap: var(--cds-spacing-03); font-family: var(--cds-font-family); font-size: var(--cds-body-short-01-size); font-weight: 400; border: none; cursor: pointer; letter-spacing: 0.16px; padding: 11px 64px 11px 16px; min-height: 48px; position: relative; transition: background-color var(--cds-duration-fast-02) var(--cds-easing-standard); }
@@ -132,6 +207,108 @@
 .cds-inline-notification--warning { background-color: var(--cds-notification-warning-bg); border-left-color: var(--cds-support-warning); }
 .cds-inline-notification--warning p { color: var(--cds-text-primary); font-size: var(--cds-body-short-01-size); }
 
+/* -- Pagination -- */
+.cds-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  border-top: 1px solid var(--cds-border-subtle);
+  font-size: var(--cds-label-01-size);
+  color: var(--cds-text-secondary);
+}
+
+.cds-pagination__left {
+  display: flex;
+  align-items: center;
+  gap: var(--cds-spacing-03);
+}
+
+.cds-pagination__label {
+  letter-spacing: 0.32px;
+}
+
+.cds-pagination__select {
+  height: 32px;
+  padding: 0 32px 0 12px;
+  font-size: var(--cds-label-01-size);
+  font-family: var(--cds-font-family);
+  background-color: var(--cds-field-01);
+  border: none;
+  border-bottom: 1px solid var(--cds-border-strong);
+  border-radius: 0;
+  color: var(--cds-text-primary);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23161616' d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  outline: none;
+}
+
+.cds-pagination__select:focus {
+  outline: 2px solid var(--cds-focus);
+  outline-offset: -2px;
+}
+
+.cds-pagination__range {
+  border-left: 1px solid var(--cds-border-subtle);
+  padding-left: var(--cds-spacing-04);
+  margin-left: var(--cds-spacing-02);
+}
+
+.cds-pagination__right {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.cds-pagination__btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--cds-icon-secondary);
+  cursor: pointer;
+  transition: background-color var(--cds-duration-fast-02) var(--cds-easing-standard);
+}
+
+.cds-pagination__btn:hover:not(:disabled) {
+  background-color: var(--cds-layer-hover-01);
+  color: var(--cds-icon-primary);
+}
+
+.cds-pagination__btn:disabled {
+  color: var(--cds-icon-disabled);
+  cursor: not-allowed;
+}
+
+.cds-pagination__page {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: var(--cds-body-short-01-size);
+  color: var(--cds-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--cds-duration-fast-02) var(--cds-easing-standard);
+}
+
+.cds-pagination__page:hover {
+  background-color: var(--cds-layer-hover-01);
+}
+
+.cds-pagination__page--active {
+  font-weight: 600;
+  color: var(--cds-text-primary);
+  background-color: var(--cds-layer-selected-01);
+}
+
 @media (max-width: 671px) {
   .cds-content__header { flex-direction: column; }
   .cds-content__header .cds-btn { width: 100%; justify-content: center; }
@@ -141,4 +318,7 @@
   .cds-select--inline { flex: 1; }
   .cds-data-table-container { overflow-x: auto; }
   .cds-data-table { min-width: 800px; }
+  .cds-search-wrapper { max-width: none; }
+  .cds-pagination { flex-direction: column; gap: var(--cds-spacing-03); align-items: flex-start; }
+  .cds-pagination__right { align-self: flex-end; }
 }

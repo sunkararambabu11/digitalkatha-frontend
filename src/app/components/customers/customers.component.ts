@@ -19,12 +19,18 @@ import { ToastService } from '../../services/toast.service';
 export class CustomersComponent implements OnInit {
   customers: Customer[] = [];
   filteredCustomers: Customer[] = [];
+  paginatedCustomers: Customer[] = [];
   loading: boolean = true;
 
   // Search & sort
   searchTerm: string = '';
   sortField: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 1;
 
   showDialog: boolean = false;
   showDeleteDialog: boolean = false;
@@ -75,11 +81,13 @@ export class CustomersComponent implements OnInit {
 
   // Search & filter
   filterCustomers(): void {
+    this.currentPage = 1;
     this.applyFilters();
   }
 
   clearSearch(): void {
     this.searchTerm = '';
+    this.currentPage = 1;
     this.applyFilters();
   }
 
@@ -111,6 +119,41 @@ export class CustomersComponent implements OnInit {
     }
 
     this.filteredCustomers = result;
+    this.totalPages = Math.max(1, Math.ceil(result.length / this.pageSize));
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    this.paginatedCustomers = this.filteredCustomers.slice(start, start + this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
   }
 
   sort(field: string): void {

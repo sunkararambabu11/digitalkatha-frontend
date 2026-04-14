@@ -64,9 +64,28 @@
 
     <!-- Transaction Ledger -->
     <div class="cds-data-table-container">
-      <div class="cds-data-table-header">
-        <h4 class="cds-data-table-header__title">Transaction ledger</h4>
-        <p class="cds-data-table-header__desc">{{ transactions.length }} transaction{{ transactions.length !== 1 ? 's' : '' }}</p>
+      <div class="cds-data-table-toolbar">
+        <div class="cds-data-table-toolbar__left">
+          <h4 class="cds-data-table-header__title">Transaction ledger</h4>
+          <p class="cds-data-table-header__desc">{{ filteredTransactions.length }} transaction{{ filteredTransactions.length !== 1 ? 's' : '' }}{{ searchTerm || typeFilter !== 'all' ? ' found' : '' }}</p>
+        </div>
+        <div class="cds-toolbar-filters" *ngIf="transactions.length > 0">
+          <div class="cds-toolbar-search">
+            <svg class="cds-toolbar-search__icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M29 27.6l-7.8-7.8A9.9 9.9 0 0 0 23 13a10 10 0 1 0-10 10 9.9 9.9 0 0 0 6.8-1.8l7.8 7.8zM5 13a8 8 0 1 1 8 8 8 8 0 0 1-8-8z"/></svg>
+            <input class="cds-toolbar-search__input" type="text" [(ngModel)]="searchTerm" (input)="onSearchChange()" placeholder="Search description..." />
+            <button class="cds-toolbar-search__clear" *ngIf="searchTerm" (click)="clearSearch()" aria-label="Clear">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/></svg>
+            </button>
+          </div>
+          <div class="cds-toolbar-filter">
+            <label class="cds-label cds-label--inline" for="typeFilterDetail">Type:</label>
+            <select class="cds-select cds-select--inline" id="typeFilterDetail" [(ngModel)]="typeFilter" (change)="onTypeFilterChange()">
+              <option value="all">All</option>
+              <option value="DEBIT">Debit</option>
+              <option value="CREDIT">Credit</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <div *ngIf="transactions.length === 0" class="cds-empty-state">
@@ -77,18 +96,32 @@
         <p>Add the first transaction for {{ customer.name }}</p>
       </div>
 
-      <table class="cds-data-table" *ngIf="transactions.length > 0">
+      <div *ngIf="transactions.length > 0 && filteredTransactions.length === 0" class="cds-empty-state">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M29 27.6l-7.8-7.8A9.9 9.9 0 0 0 23 13a10 10 0 1 0-10 10 9.9 9.9 0 0 0 6.8-1.8l7.8 7.8zM5 13a8 8 0 1 1 8 8 8 8 0 0 1-8-8z"/>
+        </svg>
+        <h3>No results</h3>
+        <p>No transactions match your filters</p>
+      </div>
+
+      <table class="cds-data-table" *ngIf="filteredTransactions.length > 0">
         <thead>
           <tr>
-            <th>Date</th>
+            <th class="cds-data-table__sortable" (click)="sort('createdAt')">
+              Date
+              <span class="cds-sort-icon" *ngIf="sortField === 'createdAt'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+            </th>
             <th>Type</th>
             <th>Description</th>
-            <th class="text-right">Amount</th>
+            <th class="text-right cds-data-table__sortable" (click)="sort('amount')">
+              Amount
+              <span class="cds-sort-icon" *ngIf="sortField === 'amount'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+            </th>
             <th class="text-right">Balance After</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let tx of transactions">
+          <tr *ngFor="let tx of paginatedTransactions">
             <td>{{ formatDate(tx.createdAt) }}</td>
             <td>
               <span [class]="tx.type === 'DEBIT' ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
@@ -105,6 +138,30 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Pagination -->
+      <div class="cds-pagination" *ngIf="filteredTransactions.length > 0">
+        <div class="cds-pagination__left">
+          <label class="cds-pagination__label" for="pageSizeDetail">Items per page:</label>
+          <select class="cds-pagination__select" id="pageSizeDetail" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+          <span class="cds-pagination__range">
+            {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredTransactions.length ? filteredTransactions.length : currentPage * pageSize }} of {{ filteredTransactions.length }} items
+          </span>
+        </div>
+        <div class="cds-pagination__right">
+          <button class="cds-pagination__btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)" aria-label="Previous page">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M10 16l10-10 1.4 1.4L12.8 16l8.6 8.6L20 26z"/></svg>
+          </button>
+          <button *ngFor="let p of pageNumbers" class="cds-pagination__page" [class.cds-pagination__page--active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+          <button class="cds-pagination__btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)" aria-label="Next page">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M22 16L12 6l-1.4 1.4L19.2 16l-8.6 8.6L12 26z"/></svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

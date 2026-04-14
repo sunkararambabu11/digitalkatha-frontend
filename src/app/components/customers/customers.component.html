@@ -61,7 +61,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let customer of filteredCustomers" class="cds-data-table__row--clickable" (click)="navigateToDetail(customer)">
+        <tr *ngFor="let customer of paginatedCustomers" class="cds-data-table__row--clickable" (click)="navigateToDetail(customer)">
           <td class="cds-data-table__cell--bold">{{ customer.name }}</td>
           <td>{{ customer.mobile }}</td>
           <td class="text-right">
@@ -85,6 +85,30 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Pagination -->
+    <div class="cds-pagination" *ngIf="filteredCustomers.length > 0">
+      <div class="cds-pagination__left">
+        <label class="cds-pagination__label" for="pageSizeCustomers">Items per page:</label>
+        <select class="cds-pagination__select" id="pageSizeCustomers" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+        </select>
+        <span class="cds-pagination__range">
+          {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredCustomers.length ? filteredCustomers.length : currentPage * pageSize }} of {{ filteredCustomers.length }} items
+        </span>
+      </div>
+      <div class="cds-pagination__right">
+        <button class="cds-pagination__btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)" aria-label="Previous page">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M10 16l10-10 1.4 1.4L12.8 16l8.6 8.6L20 26z"/></svg>
+        </button>
+        <button *ngFor="let p of pageNumbers" class="cds-pagination__page" [class.cds-pagination__page--active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <button class="cds-pagination__btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)" aria-label="Next page">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M22 16L12 6l-1.4 1.4L19.2 16l-8.6 8.6L12 26z"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   <div class="cds-loading" *ngIf="loading">

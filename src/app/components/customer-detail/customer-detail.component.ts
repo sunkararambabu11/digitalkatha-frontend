@@ -18,8 +18,23 @@ import { ToastService } from '../../services/toast.service';
 export class CustomerDetailComponent implements OnInit {
   customer: Customer | null = null;
   transactions: Transaction[] = [];
+  filteredTransactions: Transaction[] = [];
+  paginatedTransactions: Transaction[] = [];
   loading: boolean = true;
   customerId: number = 0;
+
+  // Search & sort
+  searchTerm: string = '';
+  sortField: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Filters
+  typeFilter: string = 'all';
+
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 1;
 
   // Inline add transaction
   showAddTransaction: boolean = false;
@@ -58,6 +73,7 @@ export class CustomerDetailComponent implements OnInit {
         this.apiService.getTransactions(this.customerId).subscribe({
           next: (txns) => {
             this.transactions = txns;
+            this.applyFilters();
             this.loading = false;
           },
           error: () => {
@@ -70,6 +86,108 @@ export class CustomerDetailComponent implements OnInit {
         this.router.navigate(['/customers']);
       }
     });
+  }
+
+  // Search, sort, filter, pagination
+  onSearchChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  onTypeFilterChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  applyFilters(): void {
+    let result = [...this.transactions];
+
+    // Search
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(t =>
+        (t.description && t.description.toLowerCase().includes(term))
+      );
+    }
+
+    // Type filter
+    if (this.typeFilter !== 'all') {
+      result = result.filter(t => t.type === this.typeFilter);
+    }
+
+    // Sort
+    if (this.sortField) {
+      result.sort((a, b) => {
+        let aVal: any, bVal: any;
+        if (this.sortField === 'createdAt') {
+          aVal = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          bVal = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        } else {
+          aVal = (a as any)[this.sortField];
+          bVal = (b as any)[this.sortField];
+        }
+        let cmp = 0;
+        if (typeof aVal === 'string') {
+          cmp = aVal.localeCompare(bVal);
+        } else {
+          cmp = (aVal || 0) - (bVal || 0);
+        }
+        return this.sortDirection === 'asc' ? cmp : -cmp;
+      });
+    }
+
+    this.filteredTransactions = result;
+    this.totalPages = Math.max(1, Math.ceil(result.length / this.pageSize));
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    this.paginatedTransactions = this.filteredTransactions.slice(start, start + this.pageSize);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
+  get pageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxVisible = 5;
+    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(this.totalPages, start + maxVisible - 1);
+    if (end - start < maxVisible - 1) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  onPageSizeChange(): void {
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  sort(field: string): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.applyFilters();
   }
 
   toggleAddTransaction(): void {
