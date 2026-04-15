@@ -47,6 +47,7 @@ export class CustomersComponent implements OnInit {
   };
   error: string = '';
   transactionError: string = '';
+  math = Math;
 
   constructor(
     private apiService: ApiService,

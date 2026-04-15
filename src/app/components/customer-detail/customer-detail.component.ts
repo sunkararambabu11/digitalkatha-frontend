@@ -46,6 +46,7 @@ export class CustomerDetailComponent implements OnInit {
   };
   transactionError: string = '';
   downloadingPdf: boolean = false;
+  math = Math;
 
   constructor(
     private route: ActivatedRoute,

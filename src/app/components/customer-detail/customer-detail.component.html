@@ -28,7 +28,7 @@
             <span class="cds-detail-card__stat-value"
               [class.cds-detail-card__balance-value--debit]="customer.currentBalance > 0"
               [class.cds-detail-card__balance-value--credit]="customer.currentBalance <= 0">
-              ₹{{ customer.currentBalance.toFixed(2) }}
+              ₹{{ math.abs(customer.currentBalance).toFixed(2) }}
             </span>
           </div>
         </div>
@@ -148,7 +148,7 @@
                 {{ tx.type === 'DEBIT' ? '+' : '-' }}₹{{ tx.amount.toFixed(2) }}
               </span>
             </td>
-            <td class="text-right font-mono">₹{{ tx.balanceAfter ? tx.balanceAfter.toFixed(2) : '—' }}</td>
+            <td class="text-right font-mono">₹{{ tx.balanceAfter !== undefined && tx.balanceAfter !== null ? math.abs(tx.balanceAfter).toFixed(2) : '—' }}</td>
           </tr>
         </tbody>
       </table>

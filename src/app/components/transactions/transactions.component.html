@@ -99,7 +99,7 @@
               {{ transaction.type === 'DEBIT' ? '+' : '-' }}₹{{ transaction.amount.toFixed(2) }}
             </span>
           </td>
-          <td class="text-right font-mono">{{ transaction.balanceAfter !== undefined && transaction.balanceAfter !== null ? '₹' + transaction.balanceAfter.toFixed(2) : '—' }}</td>
+          <td class="text-right font-mono">{{ transaction.balanceAfter !== undefined && transaction.balanceAfter !== null ? '₹' + math.abs(transaction.balanceAfter).toFixed(2) : '—' }}</td>
           <td class="text-right">
             <div class="cds-action-group">
               <button class="cds-btn-icon" (click)="openEditDialog(transaction)" title="Edit">

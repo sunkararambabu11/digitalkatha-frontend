@@ -78,7 +78,7 @@
           </td>
           <td class="text-right">
             <span [class]="customer.currentBalance > 0 ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
-              ₹{{ customer.currentBalance.toFixed(2) }}
+              ₹{{ math.abs(customer.currentBalance).toFixed(2) }}
             </span>
           </td>
           <td class="text-right" (click)="$event.stopPropagation()">
@@ -203,7 +203,7 @@
         <div class="cds-info-tile">
           <div class="cds-info-tile__row"><span>Customer</span><strong>{{ transactionCustomer?.name }}</strong></div>
           <div class="cds-info-tile__row"><span>Current balance</span>
-            <strong [class]="(transactionCustomer?.currentBalance || 0) > 0 ? 'text-danger' : 'text-success'">₹{{ transactionCustomer ? transactionCustomer.currentBalance.toFixed(2) : "0.00" }}</strong>
+            <strong [class]="(transactionCustomer?.currentBalance || 0) > 0 ? 'text-danger' : 'text-success'">₹{{ transactionCustomer ? math.abs(transactionCustomer.currentBalance).toFixed(2) : "0.00" }}</strong>
           </div>
         </div>
         <div class="cds-form-item">

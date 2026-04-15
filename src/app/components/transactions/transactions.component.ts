@@ -49,6 +49,7 @@ export class TransactionsComponent implements OnInit {
     description: ''
   };
   error: string = '';
+  math = Math;
 
   constructor(
     private apiService: ApiService,
