@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import {
   User,
@@ -32,8 +32,7 @@ export class AuthService {
   signup(data: SignupRequest): Observable<SignupResponse> {
     return this.http.post<SignupResponse>(`${this.apiUrl}/register`, data).pipe(
       tap((response) => {
-        // Signup API returns user data but no token.
-        // Store user info so login page can pre-fill, then redirect to login.
+  
         const user: User = {
           id: response.id,
           shopName: response.shopName,
@@ -48,6 +47,7 @@ export class AuthService {
     );
   }
 
+
   login(data: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, data).pipe(
       tap((response) => {
@@ -61,11 +61,13 @@ export class AuthService {
           email: '',
           createdAt: '',
         };
-        localStorage.setItem('user', JSON.stringify(user));
+       
         this.currentUserSubject.next(user);
       }),
     );
   }
+
+ 
 
   logout(): void {
     localStorage.removeItem('token');
@@ -76,4 +78,25 @@ export class AuthService {
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
+
+  private getHeaders(): HttpHeaders {
+  const token = localStorage.getItem('token');
+
+  return new HttpHeaders({
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  });
+}
+
+getProfile(): Observable<User> {
+  return this.http.get<User>(`${this.apiUrl}/profile`, {
+    headers: this.getHeaders(),
+  }).pipe(
+    tap((user) => {
+      localStorage.setItem('user', JSON.stringify(user));
+      this.currentUserSubject.next(user);
+    })
+  );
+}
+
 }

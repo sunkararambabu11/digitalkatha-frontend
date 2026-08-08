@@ -305,21 +305,77 @@ export class TransactionsComponent implements OnInit {
     this.deletingTransaction = null;
   }
 
-  confirmDelete(): void {
-    if (!this.deletingTransaction || !this.deletingTransaction.id) return;
+confirmDelete(): void {
 
-    this.apiService.deleteTransaction(this.deletingTransaction.id).subscribe({
-      next: () => {
-        this.loadData();
-        this.closeDeleteDialog();
-        this.toastService.success('Transaction deleted');
-      },
-      error: () => {
-        this.toastService.error('Delete failed', 'Could not delete the transaction');
-        this.closeDeleteDialog();
-      }
-    });
+  if (!this.deletingTransaction?.id) {
+    return;
   }
+
+  const customerId = Number(this.deletingTransaction.customerId);
+
+  this.apiService.deleteTransaction(this.deletingTransaction.id).subscribe({
+
+    next: () => {
+
+      // Close popup immediately
+      this.showDeleteDialog = false;
+      this.deletingTransaction = null;
+
+      this.toastService.success(
+        'Transaction deleted',
+        'Transaction deleted successfully'
+      );
+
+      // Refresh customers (balance updated)
+      this.apiService.getCustomers().subscribe({
+
+        next: (customers) => {
+
+          this.customers = customers;
+
+          // Refresh transactions of deleted customer
+          this.apiService.getTransactions(customerId).subscribe({
+
+            next: (transactions) => {
+
+              this.transactions = transactions;
+              this.applyFilters();
+
+            },
+
+            error: (err) => {
+              console.error("Transaction API Error", err);
+            }
+
+          });
+
+        },
+
+        error: (err) => {
+          console.error("Customer API Error", err);
+        }
+
+      });
+
+    },
+
+    error: (err) => {
+
+      console.error("Delete Error", err);
+
+      this.showDeleteDialog = false;
+      this.deletingTransaction = null;
+
+      this.toastService.error(
+        'Delete failed',
+        'Could not delete transaction'
+      );
+
+    }
+
+  });
+
+}
 
   formatDate(dateString?: string): string {
     if (!dateString) return '—';

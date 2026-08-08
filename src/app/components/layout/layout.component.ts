@@ -11,26 +11,33 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./layout.component.css']
 })
 export class LayoutComponent {
-  user: any = null;
-  showProfileDropdown: boolean = false;
+
+  user: any;
+  showProfileDropdown = false;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {
+
     this.user = this.authService.currentUserValue;
+
   }
 
-  toggleProfileDropdown(): void {
+  toggleProfileDropdown() {
     this.showProfileDropdown = !this.showProfileDropdown;
   }
 
-  closeProfileDropdown(): void {
+  closeProfileDropdown() {
     this.showProfileDropdown = false;
   }
 
-  logout(): void {
+  logout() {
+
     this.authService.logout();
+
     this.router.navigate(['/login']);
+
   }
+
 }

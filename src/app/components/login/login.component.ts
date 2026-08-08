@@ -38,25 +38,58 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onSubmit(): void {
-    this.error = '';
-    this.successMessage = '';
+ onSubmit(): void {
 
-    if (!this.loginData.username || !this.loginData.password) {
-      this.error = 'All fields are required';
-      return;
+  this.error = '';
+  this.successMessage = '';
+
+  if (!this.loginData.username || !this.loginData.password) {
+    this.error = 'All fields are required';
+    return;
+  }
+
+  this.loading = true;
+
+  this.authService.login(this.loginData).subscribe({
+
+    next: () => {
+
+      this.authService.getProfile().subscribe({
+
+        next: (user) => {
+
+          console.log('Profile:', user);
+
+          this.loading = false;
+
+          this.router.navigate(['/dashboard']);
+
+        },
+
+        error: (err) => {
+
+          this.loading = false;
+
+          this.error = 'Unable to load profile';
+
+          console.error(err);
+
+        }
+
+      });
+
+    },
+
+    error: (err) => {
+
+      this.loading = false;
+
+      this.error =
+        err.error?.message || 'Login failed. Please check your credentials.';
+
     }
 
-    this.loading = true;
-    this.authService.login(this.loginData).subscribe({
-      next: () => {
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.error =
-          err.error?.message || 'Login failed. Please check your credentials.';
-      },
-    });
-  }
+  });
+
+}
 }
