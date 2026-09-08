@@ -144,46 +144,14 @@
     <p class="cds-loading__text">Loading transactions...</p>
   </div>
 
-  <!-- Add/Edit Transaction Modal -->
-  <div class="cds-modal-overlay" *ngIf="showDialog" (click)="closeDialog()">
-    <div class="cds-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
-      <div class="cds-modal__header">
-        <h3>{{ editingTransaction ? 'Edit transaction' : 'Add transaction' }}</h3>
-        <button class="cds-modal__close" (click)="closeDialog()" aria-label="Close">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor"><path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/></svg>
-        </button>
-      </div>
-      <div class="cds-modal__body">
-        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error"><p>{{ error }}</p></div>
-        <div class="cds-form-item" *ngIf="!editingTransaction">
-          <label class="cds-label">Customer</label>
-          <select class="cds-select" [(ngModel)]="transactionData.customerId">
-            <option value="">Select customer</option>
-            <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }}</option>
-          </select>
-        </div>
-        <div class="cds-form-item">
-          <label class="cds-label">Type</label>
-          <select class="cds-select" [(ngModel)]="transactionData.type">
-            <option value="DEBIT">Debit (Given)</option>
-            <option value="CREDIT">Credit (Received)</option>
-          </select>
-        </div>
-        <div class="cds-form-item">
-          <label class="cds-label">Amount</label>
-          <input class="cds-text-input" type="number" [(ngModel)]="transactionData.amount" placeholder="Enter amount" step="0.01" />
-        </div>
-        <div class="cds-form-item">
-          <label class="cds-label">Description (optional)</label>
-          <input class="cds-text-input" type="text" [(ngModel)]="transactionData.description" placeholder="Enter description" />
-        </div>
-      </div>
-      <div class="cds-modal__footer">
-        <button class="cds-btn cds-btn--secondary cds-btn--modal" (click)="closeDialog()">Cancel</button>
-        <button class="cds-btn cds-btn--primary cds-btn--modal" (click)="saveTransaction()">{{ editingTransaction ? 'Update' : 'Add transaction' }}</button>
-      </div>
-    </div>
-  </div>
+  <!-- Add/Edit Transaction Side Drawer -->
+  <app-add-transaction
+    [isOpen]="showDialog"
+    [transaction]="editingTransaction"
+    [customers]="customers"
+    (close)="closeDialog()"
+    (saved)="onTransactionSaved()"
+  ></app-add-transaction>
 
   <!-- Delete Transaction Modal -->
   <div class="cds-modal-overlay" *ngIf="showDeleteDialog" (click)="closeDeleteDialog()">

@@ -1,0 +1,148 @@
+<div class="cds-side-panel-overlay" *ngIf="isOpen" (click)="onClose()">
+  <div
+    class="cds-side-panel"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="customer ? 'Edit customer' : 'Add customer'"
+  >
+    <!-- Header -->
+    <div class="cds-side-panel__header">
+      <div class="cds-side-panel__header-text">
+        <span class="cds-side-panel__tag">{{ customer ? 'UPDATE RECORD' : 'NEW CUSTOMER' }}</span>
+        <h2 class="cds-side-panel__title">{{ customer ? 'Edit customer' : 'Add customer' }}</h2>
+        <p class="cds-side-panel__subtitle">
+          {{ customer ? 'Update customer details and contact info' : 'Add a new customer to track their khata credit and debit' }}
+        </p>
+      </div>
+      <button class="cds-side-panel__close-btn" (click)="onClose()" aria-label="Close panel" title="Close (Esc)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+          <path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <form (ngSubmit)="onSubmit()" class="cds-side-panel__form" id="customerForm">
+      <div class="cds-side-panel__body">
+        <!-- Error notification -->
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error" role="alert">
+          <div class="cds-inline-notification__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm5.4,18L20,21.4,16,17.4,12,21.4,10.6,20,14.6,16l-4-4L12,10.6l4,4,4-4L21.4,12l-4,4Z"/>
+            </svg>
+          </div>
+          <div class="cds-inline-notification__text">
+            <p class="cds-inline-notification__title">Unable to save</p>
+            <p class="cds-inline-notification__subtitle">{{ error }}</p>
+          </div>
+        </div>
+
+        <!-- Name Field -->
+        <div class="cds-form-item">
+          <label class="cds-label" for="customerName">
+            Customer name <span class="cds-required-star">*</span>
+          </label>
+          <input
+            class="cds-text-input"
+            type="text"
+            id="customerName"
+            name="name"
+            [(ngModel)]="customerData.name"
+            placeholder="e.g. Ramesh Kumar"
+            required
+            autofocus
+          />
+        </div>
+
+        <!-- Mobile Number Field -->
+        <div class="cds-form-item">
+          <label class="cds-label" for="customerMobile">
+            Mobile number <span class="cds-required-star">*</span>
+          </label>
+          <input
+            class="cds-text-input"
+            type="tel"
+            id="customerMobile"
+            name="mobile"
+            [(ngModel)]="customerData.mobile"
+            placeholder="10-digit mobile number"
+            required
+          />
+          <p class="cds-form-helper">Used for SMS / WhatsApp payment reminders and digital statements.</p>
+        </div>
+
+        <!-- Opening Balance Field (only when adding new customer) -->
+        <div class="cds-form-item" *ngIf="!customer">
+          <label class="cds-label" for="customerOpeningBalance">
+            Opening balance (₹) <span class="cds-optional-tag">Optional</span>
+          </label>
+          <div class="cds-input-with-prefix">
+            <span class="cds-input-prefix">₹</span>
+            <input
+              class="cds-text-input cds-text-input--prefixed"
+              type="number"
+              id="customerOpeningBalance"
+              name="openingBalance"
+              [(ngModel)]="customerData.openingBalance"
+              placeholder="0.00"
+              step="0.01"
+            />
+          </div>
+          <p class="cds-form-helper">Positive balance means customer owes you money (Debit).</p>
+        </div>
+
+        <!-- Description / Notes -->
+        <div class="cds-form-item">
+          <label class="cds-label" for="customerDescription">
+            Description / Address <span class="cds-optional-tag">Optional</span>
+          </label>
+          <textarea
+            class="cds-textarea"
+            id="customerDescription"
+            name="description"
+            rows="3"
+            [(ngModel)]="customerData.description"
+            placeholder="e.g. Shop #4, Main Bazar, or reference notes"
+          ></textarea>
+        </div>
+
+        <!-- Info Card -->
+        <div class="cds-side-panel__info-card">
+          <div class="cds-side-panel__info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2zm0 26a12 12 0 1 1 12-12 12 12 0 0 1-12 12z"/>
+              <path d="M15 11h2v2h-2zm0 4h2v8h-2z"/>
+            </svg>
+          </div>
+          <div class="cds-side-panel__info-text">
+            <h4>Instant synchronization</h4>
+            <p>Customer transactions and account balances are updated immediately in real time.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cds-side-panel__footer">
+        <button
+          type="button"
+          class="cds-btn cds-btn--secondary cds-btn--panel"
+          (click)="onClose()"
+          [disabled]="loading"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="cds-btn cds-btn--primary cds-btn--panel"
+          [disabled]="loading"
+        >
+          <span>{{ loading ? 'Saving...' : (customer ? 'Update customer' : 'Add customer') }}</span>
+          <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+            <path d="M12 4l-1.4 1.4L19.2 14H2v2h17.2l-8.6 8.6L12 26l10.6-10.6z"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

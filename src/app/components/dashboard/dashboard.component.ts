@@ -5,11 +5,13 @@ import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
 import { DashboardSummary } from '../../models/transaction.model';
 import { LayoutComponent } from '../layout/layout.component';
+import { AddCustomerComponent } from '../add-customer/add-customer.component';
+import { Customer } from '../../models/customer.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, RouterModule, LayoutComponent, AddCustomerComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -17,6 +19,7 @@ export class DashboardComponent implements OnInit {
   summary: DashboardSummary | null = null;
   loading: boolean = true;
   downloading: boolean = false;
+  showAddCustomerDrawer: boolean = false;
   monthlyEntries: { month: string; amount: number }[] = [];
   maxMonthlyAmount: number = 0;
 
@@ -51,7 +54,16 @@ export class DashboardComponent implements OnInit {
   }
 
   goAddCustomer(): void {
-    this.router.navigate(['/customers'], { queryParams: { action: 'add' } });
+    this.showAddCustomerDrawer = true;
+  }
+
+  closeAddCustomer(): void {
+    this.showAddCustomerDrawer = false;
+  }
+
+  onCustomerAdded(customer: Customer): void {
+    this.loadData();
+    this.closeAddCustomer();
   }
 
   goAddTransaction(): void {

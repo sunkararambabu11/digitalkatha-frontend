@@ -166,4 +166,11 @@
     <div class="cds-loading__bar"></div>
     <p class="cds-loading__text">Loading dashboard...</p>
   </div>
+
+  <!-- Add Customer Side Drawer -->
+  <app-add-customer
+    [isOpen]="showAddCustomerDrawer"
+    (close)="closeAddCustomer()"
+    (saved)="onCustomerAdded($event)"
+  ></app-add-customer>
 </app-layout>

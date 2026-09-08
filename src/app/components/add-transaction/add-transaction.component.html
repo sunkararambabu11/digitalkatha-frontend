@@ -1,0 +1,212 @@
+<div class="cds-side-panel-overlay" *ngIf="isOpen" (click)="onClose()">
+  <div
+    class="cds-side-panel"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="transaction ? 'Edit transaction' : 'Add transaction'"
+  >
+    <!-- Header -->
+    <div class="cds-side-panel__header">
+      <div class="cds-side-panel__header-text">
+        <span class="cds-side-panel__tag">{{ transaction ? 'UPDATE ENTRY' : 'NEW TRANSACTION' }}</span>
+        <h2 class="cds-side-panel__title">{{ transaction ? 'Edit transaction' : 'Add transaction' }}</h2>
+        <p class="cds-side-panel__subtitle">
+          Record credit or payment in the customer ledger
+        </p>
+      </div>
+      <button class="cds-side-panel__close-btn" (click)="onClose()" aria-label="Close panel" title="Close (Esc)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+          <path d="M24 9.4L22.6 8 16 14.6 9.4 8 8 9.4 14.6 16 8 22.6 9.4 24 16 17.4 22.6 24 24 22.6 17.4 16z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <form (ngSubmit)="onSubmit()" class="cds-side-panel__form" id="transactionForm">
+      <div class="cds-side-panel__body">
+        <!-- Error notification -->
+        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="error" role="alert">
+          <div class="cds-inline-notification__icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" fill="currentColor">
+              <path d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2Zm5.4,18L20,21.4,16,17.4,12,21.4,10.6,20,14.6,16l-4-4L12,10.6l4,4,4-4L21.4,12l-4,4Z"/>
+            </svg>
+          </div>
+          <div class="cds-inline-notification__text">
+            <p class="cds-inline-notification__title">Unable to save</p>
+            <p class="cds-inline-notification__subtitle">{{ error }}</p>
+          </div>
+        </div>
+
+        <!-- Pre-selected Customer Info Card -->
+        <div class="cds-customer-badge-card" *ngIf="customer">
+          <div class="cds-customer-badge-avatar">
+            {{ customer.name.charAt(0).toUpperCase() }}
+          </div>
+          <div class="cds-customer-badge-info">
+            <h4 class="cds-customer-badge-name">{{ customer.name }}</h4>
+            <span class="cds-customer-badge-mobile" *ngIf="customer.mobile">{{ customer.mobile }}</span>
+          </div>
+          <div class="cds-customer-badge-balance">
+            <span class="cds-customer-balance-label">Current balance</span>
+            <span
+              class="cds-customer-balance-val"
+              [class.text-danger]="(customer.currentBalance || 0) > 0"
+              [class.text-success]="(customer.currentBalance || 0) <= 0"
+            >
+              ₹{{ (customer.currentBalance || 0).toFixed(2) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Customer Dropdown (if no pre-selected customer) -->
+        <div class="cds-form-item" *ngIf="!customer && !transaction">
+          <label class="cds-label" for="selectCustomer">
+            Select customer <span class="cds-required-star">*</span>
+          </label>
+          <select
+            class="cds-select"
+            id="selectCustomer"
+            name="customerId"
+            [(ngModel)]="transactionData.customerId"
+            required
+          >
+            <option value="" disabled selected>Choose a customer...</option>
+            <option *ngFor="let c of internalCustomers" [value]="c.id">
+              {{ c.name }} {{ c.mobile ? '(' + c.mobile + ')' : '' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Transaction Type Selector Buttons -->
+        <div class="cds-form-item">
+          <label class="cds-label">Transaction type <span class="cds-required-star">*</span></label>
+          <div class="cds-type-toggle-group">
+            <button
+              type="button"
+              class="cds-type-toggle-btn cds-type-toggle-btn--debit"
+              [class.active]="transactionData.type === 'DEBIT'"
+              (click)="setType('DEBIT')"
+            >
+              <div class="cds-type-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="7" y1="17" x2="17" y2="7"/>
+                  <polyline points="7 7 17 7 17 17"/>
+                </svg>
+              </div>
+              <div class="cds-type-toggle-text">
+                <span class="cds-type-toggle-title">You Gave (Debit)</span>
+                <span class="cds-type-toggle-sub">Udhaar / Credit given</span>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="cds-type-toggle-btn cds-type-toggle-btn--credit"
+              [class.active]="transactionData.type === 'CREDIT'"
+              (click)="setType('CREDIT')"
+            >
+              <div class="cds-type-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="17" y1="7" x2="7" y2="17"/>
+                  <polyline points="17 17 7 17 7 7"/>
+                </svg>
+              </div>
+              <div class="cds-type-toggle-text">
+                <span class="cds-type-toggle-title">You Got (Credit)</span>
+                <span class="cds-type-toggle-sub">Payment / Jama received</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Amount Input -->
+        <div class="cds-form-item">
+          <label class="cds-label" for="txnAmount">
+            Amount (₹) <span class="cds-required-star">*</span>
+          </label>
+          <div class="cds-input-with-prefix">
+            <span class="cds-input-prefix">₹</span>
+            <input
+              class="cds-text-input cds-text-input--prefixed cds-amount-input"
+              type="number"
+              id="txnAmount"
+              name="amount"
+              [(ngModel)]="transactionData.amount"
+              placeholder="0.00"
+              step="0.01"
+              min="0.01"
+              required
+              autofocus
+            />
+          </div>
+        </div>
+
+        <!-- Description / Notes -->
+        <div class="cds-form-item">
+          <label class="cds-label" for="txnDescription">
+            Description / Item details <span class="cds-optional-tag">Optional</span>
+          </label>
+          <textarea
+            class="cds-textarea"
+            id="txnDescription"
+            name="description"
+            rows="3"
+            [(ngModel)]="transactionData.description"
+            placeholder="e.g. Grocery items, Milk packet, Online UPI payment, Cash, etc."
+          ></textarea>
+        </div>
+
+        <!-- Impact summary card -->
+        <div
+          class="cds-impact-card"
+          [class.cds-impact-card--debit]="transactionData.type === 'DEBIT'"
+          [class.cds-impact-card--credit]="transactionData.type === 'CREDIT'"
+        >
+          <div class="cds-impact-icon">
+            <svg *ngIf="transactionData.type === 'DEBIT'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <svg *ngIf="transactionData.type === 'CREDIT'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="cds-impact-text">
+            <strong>{{ transactionData.type === 'DEBIT' ? 'Increases Customer Due' : 'Reduces Customer Due' }}</strong>
+            <p *ngIf="transactionData.type === 'DEBIT'">
+              Customer debt will increase by ₹{{ (transactionData.amount || 0).toFixed(2) }}.
+            </p>
+            <p *ngIf="transactionData.type === 'CREDIT'">
+              Customer debt will decrease by ₹{{ (transactionData.amount || 0).toFixed(2) }}.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cds-side-panel__footer">
+        <button
+          type="button"
+          class="cds-btn cds-btn--secondary cds-btn--panel"
+          (click)="onClose()"
+          [disabled]="loading"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="cds-btn cds-btn--primary cds-btn--panel"
+          [disabled]="loading"
+        >
+          <span>{{ loading ? 'Saving...' : (transaction ? 'Update transaction' : 'Save transaction') }}</span>
+          <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+            <path d="M12 4l-1.4 1.4L19.2 14H2v2h17.2l-8.6 8.6L12 26l10.6-10.6z"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

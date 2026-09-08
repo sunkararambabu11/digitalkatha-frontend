@@ -7,11 +7,12 @@ import { Transaction, TransactionRequest } from '../../models/transaction.model'
 import { Customer } from '../../models/customer.model';
 import { LayoutComponent } from '../layout/layout.component';
 import { ToastService } from '../../services/toast.service';
+import { AddTransactionComponent } from '../add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent, AddTransactionComponent],
   templateUrl: './transactions.component.html',
   styleUrls: ['./transactions.component.css']
 })
@@ -68,10 +69,17 @@ export class TransactionsComponent implements OnInit {
   }
 
   loadData(): void {
+    this.loading = true;
     this.apiService.getCustomers().subscribe({
       next: (customers) => {
         this.customers = customers;
-        this.loadTransactions();
+      }
+    });
+    this.apiService.getTransactions().subscribe({
+      next: (transactions) => {
+        this.transactions = transactions;
+        this.applyFilters();
+        this.loading = false;
       },
       error: () => {
         this.loading = false;
@@ -258,6 +266,11 @@ export class TransactionsComponent implements OnInit {
     this.error = '';
   }
 
+  onTransactionSaved(): void {
+    this.loadData();
+    this.closeDialog();
+  }
+
   saveTransaction(): void {
     if (!this.editingTransaction && !this.transactionData.customerId) {
       this.error = 'Customer is required';
@@ -305,77 +318,61 @@ export class TransactionsComponent implements OnInit {
     this.deletingTransaction = null;
   }
 
-confirmDelete(): void {
-
-  if (!this.deletingTransaction?.id) {
-    return;
-  }
-
-  const customerId = Number(this.deletingTransaction.customerId);
-
-  this.apiService.deleteTransaction(this.deletingTransaction.id).subscribe({
-
-    next: () => {
-
-      // Close popup immediately
-      this.showDeleteDialog = false;
-      this.deletingTransaction = null;
-
-      this.toastService.success(
-        'Transaction deleted',
-        'Transaction deleted successfully'
-      );
-
-      // Refresh customers (balance updated)
-      this.apiService.getCustomers().subscribe({
-
-        next: (customers) => {
-
-          this.customers = customers;
-
-          // Refresh transactions of deleted customer
-          this.apiService.getTransactions(customerId).subscribe({
-
-            next: (transactions) => {
-
-              this.transactions = transactions;
-              this.applyFilters();
-
-            },
-
-            error: (err) => {
-              console.error("Transaction API Error", err);
-            }
-
-          });
-
-        },
-
-        error: (err) => {
-          console.error("Customer API Error", err);
-        }
-
-      });
-
-    },
-
-    error: (err) => {
-
-      console.error("Delete Error", err);
-
-      this.showDeleteDialog = false;
-      this.deletingTransaction = null;
-
-      this.toastService.error(
-        'Delete failed',
-        'Could not delete transaction'
-      );
-
+  confirmDelete(): void {
+    if (!this.deletingTransaction?.id) {
+      return;
     }
 
-  });
+    const txnId = this.deletingTransaction.id;
+    // Close popup immediately
+    this.showDeleteDialog = false;
+    this.deletingTransaction = null;
 
-}
+    this.apiService.deleteTransaction(txnId).subscribe({
+      next: () => {
+        this.toastService.success(
+          'Transaction deleted',
+          'Transaction deleted successfully'
+        );
+
+        // Immediately call get all transaction API
+        this.apiService.getTransactions().subscribe({
+          next: (transactions) => {
+            this.transactions = transactions;
+            this.applyFilters();
+          },
+          error: (err) => {
+            console.error('Transaction API Error', err);
+          }
+        });
+
+        // Also refresh customers in parallel (balance updated)
+        this.apiService.getCustomers().subscribe({
+          next: (customers) => {
+            this.customers = customers;
+          },
+          error: (err) => {
+            console.error('Customer API Error', err);
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Delete Error', err);
+        this.toastService.error(
+          'Delete failed',
+          'Could not delete transaction'
+        );
+
+        // Immediately call get all transaction API to maintain sync
+        this.apiService.getTransactions().subscribe({
+          next: (transactions) => {
+            this.transactions = transactions;
+            this.applyFilters();
+          }
+        });
+      }
+    });
+  }
 
   formatDate(dateString?: string): string {
     if (!dateString) return '—';

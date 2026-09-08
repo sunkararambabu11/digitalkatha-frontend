@@ -7,11 +7,12 @@ import { Customer } from '../../models/customer.model';
 import { Transaction, TransactionRequest } from '../../models/transaction.model';
 import { LayoutComponent } from '../layout/layout.component';
 import { ToastService } from '../../services/toast.service';
+import { AddTransactionComponent } from '../add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-customer-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent, AddTransactionComponent],
   templateUrl: './customer-detail.component.html',
   styleUrls: ['./customer-detail.component.css']
 })
@@ -185,6 +186,11 @@ export class CustomerDetailComponent implements OnInit {
       this.sortDirection = 'asc';
     }
     this.applyFilters();
+  }
+
+  onTransactionSaved(): void {
+    this.showAddTransaction = false;
+    this.loadData();
   }
 
   toggleAddTransaction(): void {

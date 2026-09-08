@@ -17,6 +17,11 @@ export class LoginComponent implements OnInit {
   error: string = '';
   loading: boolean = false;
   successMessage: string = '';
+  showPassword: boolean = false;
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
 
   constructor(
     private authService: AuthService,

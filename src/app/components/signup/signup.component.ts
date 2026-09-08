@@ -24,6 +24,16 @@ export class SignupComponent {
   };
   error: string = '';
   loading: boolean = false;
+  showPassword: boolean = false;
+  showConfirmPassword: boolean = false;
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
 
   constructor(
     private authService: AuthService,

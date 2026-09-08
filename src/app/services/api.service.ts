@@ -55,6 +55,7 @@ export class ApiService {
   deleteCustomer(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/customers/${id}`, {
       headers: this.getHeaders(),
+      responseType: 'text' as 'json',
     });
   }
 
@@ -126,6 +127,7 @@ export class ApiService {
   deleteTransaction(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/transactions/${id}`, {
       headers: this.getHeaders(),
+      responseType: 'text' as 'json',
     });
   }
 

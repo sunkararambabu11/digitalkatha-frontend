@@ -8,11 +8,13 @@ import { Customer, CustomerRequest } from '../../models/customer.model';
 import { TransactionRequest } from '../../models/transaction.model';
 import { LayoutComponent } from '../layout/layout.component';
 import { ToastService } from '../../services/toast.service';
+import { AddCustomerComponent } from '../add-customer/add-customer.component';
+import { AddTransactionComponent } from '../add-transaction/add-transaction.component';
 
 @Component({
   selector: 'app-customers',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent],
+  imports: [CommonModule, FormsModule, RouterModule, LayoutComponent, AddCustomerComponent, AddTransactionComponent],
   templateUrl: './customers.component.html',
   styleUrls: ['./customers.component.css']
 })
@@ -67,6 +69,7 @@ export class CustomersComponent implements OnInit {
   }
 
   loadCustomers(): void {
+    this.loading = true;
     this.apiService.getCustomers().subscribe({
       next: (data) => {
         this.customers = data;
@@ -186,6 +189,11 @@ export class CustomersComponent implements OnInit {
     this.error = '';
   }
 
+  onCustomerSaved(savedCustomer?: Customer): void {
+    this.loadCustomers();
+    this.closeDialog();
+  }
+
   saveCustomer(): void {
     if (!this.customerData.name || !this.customerData.mobile) {
       this.error = 'All fields are required';
@@ -225,16 +233,22 @@ export class CustomersComponent implements OnInit {
   confirmDelete(): void {
     if (!this.deletingCustomer) return;
     const name = this.deletingCustomer.name;
+    const customerId = this.deletingCustomer.id;
 
-    this.apiService.deleteCustomer(this.deletingCustomer.id).subscribe({
+    // Immediately close delete dialog
+    this.closeDeleteDialog();
+
+    this.apiService.deleteCustomer(customerId).subscribe({
       next: () => {
-        this.loadCustomers();
-        this.closeDeleteDialog();
         this.toastService.success('Customer deleted', `${name} has been removed`);
+        // Immediately call get customers API
+        this.loadCustomers();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Delete Customer Error', err);
         this.toastService.error('Delete failed', `Could not delete ${name}`);
-        this.closeDeleteDialog();
+        // Immediately call get customers API to sync UI state
+        this.loadCustomers();
       }
     });
   }
@@ -256,6 +270,11 @@ export class CustomersComponent implements OnInit {
     this.transactionCustomer = null;
     this.transactionData = { customerId: '', type: 'DEBIT', amount: 0, description: '' };
     this.transactionError = '';
+  }
+
+  onTransactionSaved(): void {
+    this.loadCustomers();
+    this.closeTransactionDialog();
   }
 
   saveTransaction(): void {

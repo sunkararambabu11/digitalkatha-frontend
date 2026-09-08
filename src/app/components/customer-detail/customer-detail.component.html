@@ -38,7 +38,7 @@
     <!-- Add Transaction + Download PDF -->
     <div class="cds-inline-action">
       <div class="cds-inline-action__left">
-        <button class="cds-btn cds-btn--primary" *ngIf="!showAddTransaction" (click)="toggleAddTransaction()">
+        <button class="cds-btn cds-btn--primary" (click)="showAddTransaction = true">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M17 15V7h-2v8H7v2h8v8h2v-8h8v-2z"/></svg>
           Add transaction
         </button>
@@ -46,33 +46,6 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4z"/><path d="M26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
           {{ downloadingPdf ? 'Downloading...' : 'Download PDF' }}
         </button>
-      </div>
-
-      <div class="cds-inline-form" *ngIf="showAddTransaction">
-        <div class="cds-inline-notification cds-inline-notification--error" *ngIf="transactionError">
-          <p>{{ transactionError }}</p>
-        </div>
-        <div class="cds-inline-form__row">
-          <div class="cds-form-item">
-            <label class="cds-label">Type</label>
-            <select class="cds-select" [(ngModel)]="transactionData.type">
-              <option value="DEBIT">Debit (Given)</option>
-              <option value="CREDIT">Credit (Received)</option>
-            </select>
-          </div>
-          <div class="cds-form-item">
-            <label class="cds-label">Amount</label>
-            <input class="cds-text-input" type="number" [(ngModel)]="transactionData.amount" placeholder="Amount" step="0.01" />
-          </div>
-          <div class="cds-form-item cds-form-item--grow">
-            <label class="cds-label">Description</label>
-            <input class="cds-text-input" type="text" [(ngModel)]="transactionData.description" placeholder="Optional description" />
-          </div>
-        </div>
-        <div class="cds-inline-form__actions">
-          <button class="cds-btn cds-btn--primary cds-btn--sm" (click)="saveTransaction()">Add</button>
-          <button class="cds-btn cds-btn--secondary cds-btn--sm" (click)="toggleAddTransaction()">Cancel</button>
-        </div>
       </div>
     </div>
 
@@ -183,4 +156,10 @@
     <div class="cds-loading__bar"></div>
     <p class="cds-loading__text">Loading customer details...</p>
   </div>
+  <app-add-transaction
+    [isOpen]="showAddTransaction"
+    [customer]="customer"
+    (close)="showAddTransaction = false"
+    (saved)="onTransactionSaved()">
+  </app-add-transaction>
 </app-layout>
