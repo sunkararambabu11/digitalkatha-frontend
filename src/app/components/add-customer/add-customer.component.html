@@ -72,26 +72,6 @@
           <p class="cds-form-helper">Used for SMS / WhatsApp payment reminders and digital statements.</p>
         </div>
 
-        <!-- Opening Balance Field (only when adding new customer) -->
-        <div class="cds-form-item" *ngIf="!customer">
-          <label class="cds-label" for="customerOpeningBalance">
-            Opening balance (₹) <span class="cds-optional-tag">Optional</span>
-          </label>
-          <div class="cds-input-with-prefix">
-            <span class="cds-input-prefix">₹</span>
-            <input
-              class="cds-text-input cds-text-input--prefixed"
-              type="number"
-              id="customerOpeningBalance"
-              name="openingBalance"
-              [(ngModel)]="customerData.openingBalance"
-              placeholder="0.00"
-              step="0.01"
-            />
-          </div>
-          <p class="cds-form-helper">Positive balance means customer owes you money (Debit).</p>
-        </div>
-
         <!-- Description / Notes -->
         <div class="cds-form-item">
           <label class="cds-label" for="customerDescription">

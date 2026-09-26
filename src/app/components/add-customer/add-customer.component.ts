@@ -21,7 +21,6 @@ export class AddCustomerComponent implements OnChanges {
   customerData: CustomerRequest = {
     name: '',
     mobile: '',
-    openingBalance: 0,
     description: ''
   };
 
@@ -45,14 +44,12 @@ export class AddCustomerComponent implements OnChanges {
       this.customerData = {
         name: this.customer.name || '',
         mobile: this.customer.mobile || '',
-        openingBalance: this.customer.openingBalance || 0,
         description: this.customer.description || ''
       };
     } else {
       this.customerData = {
         name: '',
         mobile: '',
-        openingBalance: 0,
         description: ''
       };
     }

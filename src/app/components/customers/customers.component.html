@@ -54,10 +54,6 @@
           </th>
           <th>Mobile</th>
           <th>Description</th>
-          <th class="text-right cds-data-table__sortable" (click)="sort('openingBalance')">
-            Opening Bal.
-            <span class="cds-sort-icon" *ngIf="sortField === 'openingBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-          </th>
           <th class="text-right cds-data-table__sortable" (click)="sort('currentBalance')">
             Balance
             <span class="cds-sort-icon" *ngIf="sortField === 'currentBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
@@ -73,9 +69,6 @@
           </td>
           <td>{{ customer.mobile }}</td>
           <td class="cds-data-table__cell--secondary">{{ customer.description || '—' }}</td>
-          <td class="text-right">
-            <span class="font-mono">₹{{ (customer.openingBalance || 0).toFixed(2) }}</span>
-          </td>
           <td class="text-right">
             <span [class]="customer.currentBalance > 0 ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
               ₹{{ customer.currentBalance.toFixed(2) }}

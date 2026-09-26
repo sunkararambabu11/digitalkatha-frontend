@@ -19,7 +19,7 @@
           <p class="cds-detail-card__meta" *ngIf="customer.createdAt">Customer since {{ formatShortDate(customer.createdAt) }}</p>
         </div>
         <div class="cds-detail-card__stats">
-          <div class="cds-detail-card__stat" *ngIf="customer.openingBalance !== undefined && customer.openingBalance !== null">
+          <div class="cds-detail-card__stat" *ngIf="customer.openingBalance !== undefined && customer.openingBalance !== null && customer.openingBalance !== 0">
             <span class="cds-detail-card__stat-label">Opening Balance</span>
             <span class="cds-detail-card__stat-value font-mono">₹{{ customer.openingBalance.toFixed(2) }}</span>
           </div>
