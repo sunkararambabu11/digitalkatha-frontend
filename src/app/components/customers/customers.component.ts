@@ -177,7 +177,7 @@ export class CustomersComponent implements OnInit {
     this.editingCustomer = customer;
     this.customerData = customer
       ? { name: customer.name, mobile: customer.mobile || '', description: customer.description || '' }
-      : { name: '', mobile: '', openingBalance: 0, description: '' };
+      : { name: '', mobile: '', description: '' };
     this.error = '';
     this.showDialog = true;
   }
@@ -185,7 +185,7 @@ export class CustomersComponent implements OnInit {
   closeDialog(): void {
     this.showDialog = false;
     this.editingCustomer = null;
-    this.customerData = { name: '', mobile: '', openingBalance: 0, description: '' };
+    this.customerData = { name: '', mobile: '', description: '' };
     this.error = '';
   }
 

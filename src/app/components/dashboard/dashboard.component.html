@@ -87,10 +87,16 @@
         Add transaction
       </button>
     </div>
-    <button class="cds-btn cds-btn--ghost" (click)="downloadDashboard()" [disabled]="downloading">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4z"/><path d="M26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
-      {{ downloading ? 'Downloading...' : 'Download PDF' }}
-    </button>
+    <div class="cds-quick-actions__right" style="display: flex; gap: 0.5rem;">
+      <button class="cds-btn cds-btn--ghost" (click)="loadData()" [disabled]="loading" title="Refresh dashboard data">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M12 10H6.78A11 11 0 0 1 27 16h2A13 13 0 0 0 6 7.68V4H4v8h8zM20 22h5.22A11 11 0 0 1 5 16H3a13 13 0 0 0 23 8.32V28h2v-8h-8z"/></svg>
+        Refresh
+      </button>
+      <button class="cds-btn cds-btn--ghost" (click)="downloadDashboard()" [disabled]="downloading">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M26 24v4H6v-4H4v4a2 2 0 0 0 2 2h20a2 2 0 0 0 2-2v-4z"/><path d="M26 14l-1.41-1.41L17 20.17V2h-2v18.17l-7.59-7.58L6 14l10 10z"/></svg>
+        {{ downloading ? 'Downloading...' : 'Download PDF' }}
+      </button>
+    </div>
   </div>
 
   <!-- Dashboard Sections -->
@@ -173,4 +179,11 @@
     (close)="closeAddCustomer()"
     (saved)="onCustomerAdded($event)"
   ></app-add-customer>
+
+  <!-- Add Transaction Side Drawer -->
+  <app-add-transaction
+    [isOpen]="showAddTransactionDrawer"
+    (close)="closeAddTransaction()"
+    (saved)="onTransactionAdded($event)"
+  ></app-add-transaction>
 </app-layout>

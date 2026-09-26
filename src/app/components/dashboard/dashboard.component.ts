@@ -6,12 +6,13 @@ import { ToastService } from '../../services/toast.service';
 import { DashboardSummary } from '../../models/transaction.model';
 import { LayoutComponent } from '../layout/layout.component';
 import { AddCustomerComponent } from '../add-customer/add-customer.component';
+import { AddTransactionComponent } from '../add-transaction/add-transaction.component';
 import { Customer } from '../../models/customer.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, LayoutComponent, AddCustomerComponent],
+  imports: [CommonModule, RouterModule, LayoutComponent, AddCustomerComponent, AddTransactionComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
@@ -20,6 +21,7 @@ export class DashboardComponent implements OnInit {
   loading: boolean = true;
   downloading: boolean = false;
   showAddCustomerDrawer: boolean = false;
+  showAddTransactionDrawer: boolean = false;
   monthlyEntries: { month: string; amount: number }[] = [];
   maxMonthlyAmount: number = 0;
 
@@ -34,16 +36,20 @@ export class DashboardComponent implements OnInit {
   }
 
   loadData(): void {
+    this.loading = true;
     this.apiService.getDashboardFullSummary().subscribe({
       next: (data) => {
         this.summary = data;
         // Process monthly data for chart
-        if (data.monthlyData) {
+        if (data && data.monthlyData) {
           this.monthlyEntries = Object.entries(data.monthlyData).map(([month, amount]) => ({
             month: month.charAt(0) + month.slice(1).toLowerCase(),
             amount
           }));
           this.maxMonthlyAmount = Math.max(...this.monthlyEntries.map(e => e.amount), 1);
+        } else {
+          this.monthlyEntries = [];
+          this.maxMonthlyAmount = 1;
         }
         this.loading = false;
       },
@@ -62,12 +68,22 @@ export class DashboardComponent implements OnInit {
   }
 
   onCustomerAdded(customer: Customer): void {
-    this.loadData();
     this.closeAddCustomer();
+    this.loadData();
   }
 
   goAddTransaction(): void {
-    this.router.navigate(['/transactions'], { queryParams: { action: 'add' } });
+    this.showAddTransactionDrawer = true;
+  }
+
+  closeAddTransaction(): void {
+    this.showAddTransactionDrawer = false;
+  }
+
+  onTransactionAdded(res: any): void {
+    this.closeAddTransaction();
+    this.toastService.show('success', 'Transaction added successfully');
+    this.loadData();
   }
 
   downloadDashboard(): void {

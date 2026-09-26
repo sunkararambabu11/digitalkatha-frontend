@@ -13,6 +13,5 @@ export interface Customer {
 export interface CustomerRequest {
   name: string;
   mobile: string;
-  openingBalance?: number;
   description?: string;
 }

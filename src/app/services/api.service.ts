@@ -134,16 +134,28 @@ export class ApiService {
   // ============================================================
   // Dashboard APIs
   // Backend: GET /api/dashboard/summary (full combined summary)
+  // Backend: GET /api/dashboard (basic stats)
   // ============================================================
+  getDashboard(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/dashboard`, {
+      headers: this.getHeaders(),
+    });
+  }
+
   getDashboardFullSummary(): Observable<DashboardSummary> {
     return this.http.get<DashboardSummary>(`${this.apiUrl}/dashboard/summary`, {
       headers: this.getHeaders(),
-    }).pipe(catchError(() => of({
-      totalCustomers: 0, activeCustomers: 0,
-      totalDebit: 0, totalCredit: 0, totalOutstanding: 0,
-      todayTransactionCount: 0, todayDebit: 0, todayCredit: 0,
-      topDebtors: [], recentTransactions: [], monthlyData: {}
-    })));
+    }).pipe(
+      catchError((err) => {
+        console.error('Error fetching dashboard summary:', err);
+        return of({
+          totalCustomers: 0, activeCustomers: 0,
+          totalDebit: 0, totalCredit: 0, totalOutstanding: 0,
+          todayTransactionCount: 0, todayDebit: 0, todayCredit: 0,
+          topDebtors: [], recentTransactions: [], monthlyData: {}
+        });
+      })
+    );
   }
 
   // ============================================================
