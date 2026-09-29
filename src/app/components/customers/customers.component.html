@@ -45,73 +45,84 @@
       <p>No customers match "{{ searchTerm }}"</p>
     </div>
 
-    <table class="cds-data-table" *ngIf="filteredCustomers.length > 0">
-      <thead>
-        <tr>
-          <th class="cds-data-table__sortable" (click)="sort('name')">
-            Name
-            <span class="cds-sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-          </th>
-          <th>Mobile</th>
-          <th>Description</th>
-          <th class="text-right cds-data-table__sortable" (click)="sort('currentBalance')">
-            Balance
-            <span class="cds-sort-icon" *ngIf="sortField === 'currentBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
-          </th>
-          <th class="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let customer of paginatedCustomers" class="cds-data-table__row--clickable" (click)="navigateToDetail(customer)">
-          <td class="cds-data-table__cell--bold">
-            {{ customer.name }}
-            <span class="cds-cell-meta" *ngIf="customer.createdAt">Since {{ formatDate(customer.createdAt) }}</span>
-          </td>
-          <td>{{ customer.mobile }}</td>
-          <td class="cds-data-table__cell--secondary">{{ customer.description || '—' }}</td>
-          <td class="text-right">
-            <span [class]="customer.currentBalance > 0 ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
-              ₹{{ customer.currentBalance.toFixed(2) }}
-            </span>
-          </td>
-          <td class="text-right" (click)="$event.stopPropagation()">
-            <div class="cds-action-group">
-              <button class="cds-btn-icon cds-btn-icon--green" (click)="openTransactionDialog(customer)" title="Add Transaction">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </button>
-              <button class="cds-btn-icon" (click)="openDialog(customer)" title="Edit">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="cds-btn-icon cds-btn-icon--danger" (click)="openDeleteDialog(customer)" title="Delete">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="cds-table-scroll-wrap" (scroll)="onTableScroll($event)" *ngIf="filteredCustomers.length > 0">
+      <table class="cds-data-table">
+        <thead>
+          <tr>
+            <th class="cds-data-table__sortable" (click)="sort('name')">
+              Name
+              <span class="cds-sort-icon" *ngIf="sortField === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+            <th>Mobile</th>
+            <th>Description</th>
+            <th class="text-right cds-data-table__sortable" (click)="sort('currentBalance')">
+              Balance
+              <span class="cds-sort-icon" *ngIf="sortField === 'currentBalance'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span>
+            </th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of paginatedCustomers; trackBy: trackById" class="cds-data-table__row--clickable" (click)="navigateToDetail(customer)">
+            <td class="cds-data-table__cell--bold">
+              {{ customer.name }}
+              <span class="cds-cell-meta" *ngIf="customer.createdAt">Since {{ formatDate(customer.createdAt) }}</span>
+            </td>
+            <td>{{ customer.mobile }}</td>
+            <td class="cds-data-table__cell--secondary">{{ customer.description || '—' }}</td>
+            <td class="text-right">
+              <span [class]="customer.currentBalance > 0 ? 'cds-tag cds-tag--red' : 'cds-tag cds-tag--green'">
+                ₹{{ customer.currentBalance.toFixed(2) }}
+              </span>
+            </td>
+            <td class="text-right" (click)="$event.stopPropagation()">
+              <div class="cds-action-group">
+                <button class="cds-btn-icon cds-btn-icon--green" (click)="openTransactionDialog(customer)" title="Add Transaction">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                </button>
+                <button class="cds-btn-icon" (click)="openDialog(customer)" title="Edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="cds-btn-icon cds-btn-icon--danger" (click)="openDeleteDialog(customer)" title="Delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <!-- Pagination -->
-    <div class="cds-pagination" *ngIf="filteredCustomers.length > 0">
-      <div class="cds-pagination__left">
-        <label class="cds-pagination__label" for="pageSizeCustomers">Items per page:</label>
-        <select class="cds-pagination__select" id="pageSizeCustomers" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
-          <option [value]="10">10</option>
-          <option [value]="25">25</option>
+    <!-- Vertical Scroll Pagination Bar -->
+    <div class="cds-scroll-pagination" *ngIf="filteredCustomers.length > 0">
+      <div class="cds-scroll-pagination__left">
+        <label class="cds-scroll-pagination__label" for="pageSizeCustomers">Batch size:</label>
+        <select class="cds-scroll-pagination__select" id="pageSizeCustomers" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+          <option [value]="15">15</option>
+          <option [value]="30">30</option>
           <option [value]="50">50</option>
+          <option [value]="100">100</option>
         </select>
-        <span class="cds-pagination__range">
-          {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage * pageSize > filteredCustomers.length ? filteredCustomers.length : currentPage * pageSize }} of {{ filteredCustomers.length }} items
+        <span class="cds-scroll-pagination__count">
+          Showing <strong>{{ paginatedCustomers.length }}</strong> of <strong>{{ filteredCustomers.length }}</strong> customers
         </span>
+        <div class="cds-scroll-pagination__bar-track" [title]="((paginatedCustomers.length / filteredCustomers.length) * 100).toFixed(0) + '% loaded'">
+          <div class="cds-scroll-pagination__bar-fill" [style.width.%]="(paginatedCustomers.length / filteredCustomers.length) * 100"></div>
+        </div>
       </div>
-      <div class="cds-pagination__right">
-        <button class="cds-pagination__btn" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)" aria-label="Previous page">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M10 16l10-10 1.4 1.4L12.8 16l8.6 8.6L20 26z"/></svg>
+      <div class="cds-scroll-pagination__right">
+        <div class="cds-scroll-pagination__loading" *ngIf="isLoadingMore">
+          <span class="cds-scroll-pagination__spinner"></span>
+          <span>Loading more...</span>
+        </div>
+        <button class="cds-scroll-pagination__btn" *ngIf="hasMore && !isLoadingMore" (click)="loadMore()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M16 26L4 14l1.4-1.4L15 22.2V4h2v18.2l9.6-9.6L28 14z"/></svg>
+          Scroll or click to load more ({{ filteredCustomers.length - paginatedCustomers.length }} remaining)
         </button>
-        <button *ngFor="let p of pageNumbers" class="cds-pagination__page" [class.cds-pagination__page--active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
-        <button class="cds-pagination__btn" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)" aria-label="Next page">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 32 32" fill="currentColor"><path d="M22 16L12 6l-1.4 1.4L19.2 16l-8.6 8.6L12 26z"/></svg>
-        </button>
+        <span class="cds-scroll-pagination__end" *ngIf="!hasMore && filteredCustomers.length > 0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 32 32" fill="currentColor"><path d="M13 24l-9-9 1.4-1.4L13 21.2l14.6-14.6L29 8z"/></svg>
+          All {{ filteredCustomers.length }} customers loaded
+        </span>
       </div>
     </div>
   </div>

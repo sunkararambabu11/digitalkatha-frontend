@@ -22,12 +22,12 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
 
   /** Quick suggestion chips shown when conversation is empty */
   suggestions: string[] = [
-    'How do I add a customer?',
+    'Create customer',
+    'Add transaction',
+    'Show dashboard',
     'What is debit vs credit?',
     'How to download reports?',
     'Show me tips for my shop',
-    'What can you help me with?',
-    'How does demo mode work?',
   ];
 
   constructor(private aiChatService: AiChatService) {}
@@ -113,7 +113,7 @@ export class AiChatComponent implements OnInit, AfterViewChecked {
     }
   }
 
-  formatTime(date: Date): string {
+  formatTime(date: Date | string): string {
     return new Date(date).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',

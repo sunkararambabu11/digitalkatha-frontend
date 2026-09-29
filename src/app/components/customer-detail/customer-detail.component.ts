@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { Customer } from '../../models/customer.model';
 import { Transaction, TransactionRequest } from '../../models/transaction.model';
@@ -16,13 +17,14 @@ import { AddTransactionComponent } from '../add-transaction/add-transaction.comp
   templateUrl: './customer-detail.component.html',
   styleUrls: ['./customer-detail.component.css']
 })
-export class CustomerDetailComponent implements OnInit {
+export class CustomerDetailComponent implements OnInit, OnDestroy {
   customer: Customer | null = null;
   transactions: Transaction[] = [];
   filteredTransactions: Transaction[] = [];
   paginatedTransactions: Transaction[] = [];
   loading: boolean = true;
   customerId: number = 0;
+  private dataChangeSub?: Subscription;
 
   // Search & sort
   searchTerm: string = '';
@@ -32,10 +34,10 @@ export class CustomerDetailComponent implements OnInit {
   // Filters
   typeFilter: string = 'all';
 
-  // Pagination
-  currentPage: number = 1;
-  pageSize: number = 10;
-  totalPages: number = 1;
+  // Vertical Scroll Pagination
+  pageSize: number = 15;
+  displayedCount: number = 15;
+  isLoadingMore: boolean = false;
 
   // Inline add transaction
   showAddTransaction: boolean = false;
@@ -58,6 +60,15 @@ export class CustomerDetailComponent implements OnInit {
   ngOnInit(): void {
     this.customerId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadData();
+
+    // Refresh immediately when transactions or customer details change (e.g. via AI chat)
+    this.dataChangeSub = this.apiService.onDataChange.subscribe(() => {
+      this.loadData();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dataChangeSub?.unsubscribe();
   }
 
   loadData(): void {
@@ -88,18 +99,15 @@ export class CustomerDetailComponent implements OnInit {
 
   // Search, sort, filter, pagination
   onSearchChange(): void {
-    this.currentPage = 1;
     this.applyFilters();
   }
 
   clearSearch(): void {
     this.searchTerm = '';
-    this.currentPage = 1;
     this.applyFilters();
   }
 
   onTypeFilterChange(): void {
-    this.currentPage = 1;
     this.applyFilters();
   }
 
@@ -141,41 +149,52 @@ export class CustomerDetailComponent implements OnInit {
     }
 
     this.filteredTransactions = result;
-    this.totalPages = Math.max(1, Math.ceil(result.length / this.pageSize));
-    if (this.currentPage > this.totalPages) {
-      this.currentPage = this.totalPages;
-    }
+    this.displayedCount = this.pageSize;
     this.updatePagination();
   }
 
   updatePagination(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.paginatedTransactions = this.filteredTransactions.slice(start, start + this.pageSize);
+    this.paginatedTransactions = this.filteredTransactions.slice(0, this.displayedCount);
   }
 
-  goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    this.updatePagination();
+  get hasMore(): boolean {
+    return this.displayedCount < this.filteredTransactions.length;
   }
 
-  get pageNumbers(): number[] {
-    const pages: number[] = [];
-    const maxVisible = 5;
-    let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
-    let end = Math.min(this.totalPages, start + maxVisible - 1);
-    if (end - start < maxVisible - 1) {
-      start = Math.max(1, end - maxVisible + 1);
+  loadMore(): void {
+    if (this.isLoadingMore || !this.hasMore) return;
+    this.isLoadingMore = true;
+    setTimeout(() => {
+      this.displayedCount = Math.min(this.displayedCount + this.pageSize, this.filteredTransactions.length);
+      this.updatePagination();
+      this.isLoadingMore = false;
+    }, 180);
+  }
+
+  onTableScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    if (!el) return;
+    if (el.scrollHeight - el.scrollTop <= el.clientHeight + 90) {
+      this.loadMore();
     }
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    const scrollPos = window.innerHeight + window.scrollY;
+    const threshold = document.documentElement.scrollHeight - 150;
+    if (scrollPos >= threshold) {
+      this.loadMore();
     }
-    return pages;
   }
 
   onPageSizeChange(): void {
-    this.currentPage = 1;
-    this.applyFilters();
+    this.displayedCount = this.pageSize;
+    this.updatePagination();
+  }
+
+  trackById(_index: number, item: Transaction): any {
+    return item.id;
   }
 
   sort(field: string): void {

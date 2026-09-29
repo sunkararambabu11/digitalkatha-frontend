@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { ToastService } from '../../services/toast.service';
 import { DashboardSummary } from '../../models/transaction.model';
@@ -16,7 +17,7 @@ import { Customer } from '../../models/customer.model';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   summary: DashboardSummary | null = null;
   loading: boolean = true;
   downloading: boolean = false;
@@ -24,6 +25,7 @@ export class DashboardComponent implements OnInit {
   showAddTransactionDrawer: boolean = false;
   monthlyEntries: { month: string; amount: number }[] = [];
   maxMonthlyAmount: number = 0;
+  private dataChangeSub?: Subscription;
 
   constructor(
     private apiService: ApiService,
@@ -33,6 +35,15 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+
+    // Refresh immediately when customer or transaction is added/updated (e.g. via AI chat)
+    this.dataChangeSub = this.apiService.onDataChange.subscribe(() => {
+      this.loadData();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dataChangeSub?.unsubscribe();
   }
 
   loadData(): void {

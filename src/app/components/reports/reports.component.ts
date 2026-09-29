@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { Customer } from '../../models/customer.model';
 import { LayoutComponent } from '../layout/layout.component';
@@ -14,7 +15,7 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './reports.component.html',
   styleUrls: ['./reports.component.css']
 })
-export class ReportsComponent implements OnInit {
+export class ReportsComponent implements OnInit, OnDestroy {
   customers: Customer[] = [];
   loading: boolean = true;
   downloading: boolean = false;
@@ -22,6 +23,7 @@ export class ReportsComponent implements OnInit {
   selectedCustomerId: string = '';
   dateRange: string = 'all';
   error: string = '';
+  private dataChangeSub?: Subscription;
 
   constructor(
     private apiService: ApiService,
@@ -30,6 +32,15 @@ export class ReportsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCustomers();
+
+    // Refresh immediately when customer or transaction changes (e.g. via AI chat)
+    this.dataChangeSub = this.apiService.onDataChange.subscribe(() => {
+      this.loadCustomers();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.dataChangeSub?.unsubscribe();
   }
 
   loadCustomers(): void {

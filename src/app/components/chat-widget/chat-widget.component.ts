@@ -38,12 +38,12 @@ export class ChatWidgetComponent implements OnInit, AfterViewChecked {
 
   /* ── Suggestions ── */
   suggestions: string[] = [
-    'How do I add a customer?',
+    'Create customer',
+    'Add transaction',
+    'Show dashboard',
     'What is debit vs credit?',
     'How to download reports?',
     'Show me tips for my shop',
-    'What can you help me with?',
-    'How does demo mode work?',
   ];
 
   private shouldScroll = false;
@@ -288,11 +288,11 @@ export class ChatWidgetComponent implements OnInit, AfterViewChecked {
      Formatting helpers
      ──────────────────────────────────────── */
 
-  formatTime(ts: string): string {
+  formatTime(ts: string | Date): string {
     return this.chatService.formatTime(ts);
   }
 
-  formatRelative(ts: string): string {
+  formatRelative(ts: string | Date): string {
     return this.chatService.formatRelativeTime(ts);
   }
 

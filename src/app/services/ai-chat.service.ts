@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { catchError, delay, map } from 'rxjs/operators';
+import { ApiService } from './api.service';
 
 /* ──────────────────────────────────────────
    Models
@@ -9,7 +11,7 @@ export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  timestamp: string; // ISO 8601
+  timestamp: string | Date; // ISO 8601 or Date
 }
 
 export interface Conversation {
@@ -39,9 +41,13 @@ const MAX_MESSAGES_PER_CONVERSATION = 200;
   providedIn: 'root',
 })
 export class AiChatService {
+  private apiUrl = 'http://localhost:8081/api/ai';
   private state: ChatWidgetState;
 
-  constructor() {
+  constructor(
+    private http: HttpClient,
+    private apiService: ApiService
+  ) {
     this.state = this.loadFromStorage();
   }
 
@@ -108,11 +114,27 @@ export class AiChatService {
     return conv;
   }
 
+  /** Returns the messages of the active conversation */
+  getConversationHistory(): ChatMessage[] {
+    const conv = this.ensureActiveConversation();
+    return conv ? [...conv.messages] : [];
+  }
+
+  /** Clears the messages of the active conversation */
+  clearConversation(): void {
+    const conv = this.ensureActiveConversation();
+    if (conv) {
+      conv.messages = [];
+      conv.updatedAt = new Date().toISOString();
+      this.saveToStorage();
+    }
+  }
+
   /* ────────── Messaging ────────── */
 
   /**
-   * Send a user message and receive a mock AI response.
-   * Future: replace mock logic with real API call.
+   * Send a user message to backend /api/ai/chat when authenticated,
+   * with graceful fallback to built-in response engine.
    */
   sendMessage(userMessage: string): Observable<ChatMessage> {
     const conv = this.ensureActiveConversation();
@@ -137,7 +159,64 @@ export class AiChatService {
     this.pruneMessages(conv);
     this.saveToStorage();
 
-    // Generate mock response
+    const token = localStorage.getItem('token');
+    if (token) {
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      });
+
+      return this.http.post<{ reply: string; action?: string; customerId?: any; transactionId?: any }>(
+        `${this.apiUrl}/chat`,
+        { message: userMessage },
+        { headers }
+      ).pipe(
+        map((res) => {
+          const replyText = res.reply || 'No response received from assistant.';
+          const assistantMsg: ChatMessage = {
+            id: this.generateId(),
+            role: 'assistant',
+            content: replyText,
+            timestamp: new Date().toISOString(),
+          };
+          const c = this.state.conversations.find(x => x.id === conv.id);
+          if (c) {
+            c.messages.push(assistantMsg);
+            c.updatedAt = new Date().toISOString();
+            this.pruneMessages(c);
+            this.saveToStorage();
+          }
+
+          // Trigger immediate data refresh across active UI pages
+          const lowerReply = replyText.toLowerCase();
+          if (res.action === 'CUSTOMER_CREATED' || lowerReply.includes('customer created successfully')) {
+            this.apiService.notifyDataChange({
+              type: 'customer',
+              action: 'create',
+              customerId: res.customerId
+            });
+          } else if (res.action === 'TRANSACTION_CREATED' || lowerReply.includes('transaction added successfully')) {
+            this.apiService.notifyDataChange({
+              type: 'transaction',
+              action: 'create',
+              customerId: res.customerId
+            });
+          }
+
+          return assistantMsg;
+        }),
+        catchError((err) => {
+          console.warn('Backend AI chat call failed (status ' + err.status + '), using dynamic local fallback:', err);
+          return this.createMockAssistantMessage(conv, userMessage);
+        })
+      );
+    }
+
+    // Unauthenticated or demo mode: use local assistant logic
+    return this.createMockAssistantMessage(conv, userMessage);
+  }
+
+  private createMockAssistantMessage(conv: Conversation, userMessage: string): Observable<ChatMessage> {
     const responseText = this.getMockResponse(userMessage);
     const assistantMsg: ChatMessage = {
       id: this.generateId(),
@@ -146,12 +225,11 @@ export class AiChatService {
       timestamp: new Date().toISOString(),
     };
 
-    const delayMs = 400 + Math.random() * 800;
+    const delayMs = 350 + Math.random() * 400;
 
     return of(assistantMsg).pipe(
       delay(delayMs),
       map((msg) => {
-        // Find conversation again (state may have changed)
         const c = this.state.conversations.find(x => x.id === conv.id);
         if (c) {
           c.messages.push(msg);
@@ -198,7 +276,7 @@ export class AiChatService {
 
   /* ────────── Format helpers ────────── */
 
-  formatRelativeTime(isoString: string): string {
+  formatRelativeTime(isoString: string | Date): string {
     const now = Date.now();
     const then = new Date(isoString).getTime();
     const diffMs = now - then;
@@ -216,7 +294,7 @@ export class AiChatService {
     });
   }
 
-  formatTime(isoString: string): string {
+  formatTime(isoString: string | Date): string {
     return new Date(isoString).toLocaleTimeString('en-IN', {
       hour: '2-digit',
       minute: '2-digit',
@@ -359,8 +437,309 @@ export class AiChatService {
   private defaultResponse =
     'I\'m not sure I understand that question. Here are some things I can help with:\n\n- How to add customers or transactions\n- Understanding debit vs credit\n- Dashboard and reports guidance\n- Searching and filtering records\n- Tips for managing your khata\n\nTry asking about any of these topics!';
 
+  private mockSession: {
+    step: 'name' | 'phone' | 'description';
+    name?: string;
+    mobile?: string;
+    description?: string;
+    openingBalance?: number;
+  } | null = null;
+
+  private mockTxnSession: {
+    step: 'customer' | 'type' | 'amount' | 'description';
+    customerName?: string;
+    type?: 'DEBIT' | 'CREDIT';
+    amount?: number;
+    description?: string;
+  } | null = null;
+
   private getMockResponse(input: string): string {
     const lower = input.toLowerCase().trim();
+
+    // 1. Active interactive customer creation session
+    if (this.mockSession) {
+      if (['cancel', 'exit', 'stop', 'quit', 'abort'].includes(lower)) {
+        this.mockSession = null;
+        return '❌ Customer creation cancelled. You can type **"create customer"** anytime to start again.';
+      }
+
+      if (this.mockSession.step === 'name') {
+        const cleanName = input.replace(/^(customer name is|name is|customer name:|name:)/i, '').trim();
+        if (!cleanName || /^\d+$/.test(cleanName)) {
+          return '⚠️ Please enter a valid customer name (letters and spaces), or type \'cancel\' to exit:';
+        }
+        this.mockSession.name = cleanName;
+        this.mockSession.step = 'phone';
+        return `Great! Customer Name: **${cleanName}** 👤\n\nNow, please enter the **Phone Number** (10-digit mobile):`;
+      }
+
+      if (this.mockSession.step === 'phone') {
+        let digits = input.replace(/\D/g, '');
+        if (digits.startsWith('91') && digits.length === 12) {
+          digits = digits.substring(2);
+        }
+        if (digits.length < 7 || digits.length > 15) {
+          return '⚠️ Please enter a valid mobile number (7-15 digits, e.g., 9876543210), or type \'cancel\' to exit:';
+        }
+        this.mockSession.mobile = digits;
+        this.mockSession.step = 'description';
+        return `Phone Number saved: **${digits}** 📱\n\nNow, please enter a **Description / Note** for **${this.mockSession.name}** (e.g., 'Regular shop customer', opening balance like '500', or type **'skip'**):`;
+      }
+
+      if (this.mockSession.step === 'description') {
+        const isSkip = ['skip', 'none', 'no', '-', 'na', 'n/a'].includes(lower);
+        let desc = 'Created via Assistant';
+        let openingBal = 0;
+
+        if (!isSkip) {
+          if (/^\d+(\.\d+)?$/.test(input)) {
+            openingBal = parseFloat(input);
+            desc = `Opening balance: ₹${openingBal}`;
+          } else {
+            desc = input;
+            const match = input.match(/(?:bal|balance|rs|inr|opening)\s*[:=]?\s*(\d+(?:\.\d+)?)/i);
+            if (match) {
+              openingBal = parseFloat(match[1]);
+            }
+          }
+        }
+
+        const createdName = this.mockSession.name;
+        const createdPhone = this.mockSession.mobile;
+        this.mockSession = null;
+
+        setTimeout(() => {
+          this.apiService.notifyDataChange({ type: 'customer', action: 'create' });
+        }, 100);
+
+        return `✅ **Customer Created Successfully!**\n\n• 👤 **Name:** ${createdName}\n• 📱 **Phone:** ${createdPhone}\n• 📝 **Description:** ${desc}\n• 💰 **Opening Balance:** ₹${openingBal.toFixed(2)}`;
+      }
+    }
+
+    // 2. Active interactive transaction creation session
+    if (this.mockTxnSession) {
+      if (['cancel', 'exit', 'stop', 'quit', 'abort'].includes(lower)) {
+        this.mockTxnSession = null;
+        return '❌ Transaction cancelled. You can type **"add transaction"** anytime to start again.';
+      }
+
+      if (this.mockTxnSession.step === 'customer') {
+        const cleanName = input.replace(/^(customer name is|to|for|from)\s*/i, '').trim();
+        if (!cleanName || /^\d+$/.test(cleanName)) {
+          return '⚠️ Please enter a valid customer name (e.g., Rahul), or type \'cancel\' to exit:';
+        }
+        this.mockTxnSession.customerName = cleanName;
+        this.mockTxnSession.step = 'type';
+        return `Selected customer: **${cleanName}** 👤\n\nWas this money given or received?\n• Reply **1** or **Gave** (Debit / Udhaar)\n• Reply **2** or **Got** (Credit / Payment)\n\n_(Type 'cancel' to abort)_`;
+      }
+
+      if (this.mockTxnSession.step === 'type') {
+        let type: 'DEBIT' | 'CREDIT' | null = null;
+        if (lower === '1' || lower.includes('gave') || lower.includes('give') || lower.includes('debit') || lower.includes('udhaar')) {
+          type = 'DEBIT';
+        } else if (lower === '2' || lower.includes('got') || lower.includes('credit') || lower.includes('jama') || lower.includes('received') || lower.includes('payment') || lower.includes('paid')) {
+          type = 'CREDIT';
+        }
+
+        if (!type) {
+          return '⚠️ Please select:\n• Reply **1** or **Gave** (Debit / Udhaar)\n• Reply **2** or **Got** (Credit / Payment)\n_(Type \'cancel\' to exit)_';
+        }
+
+        this.mockTxnSession.type = type;
+        this.mockTxnSession.step = 'amount';
+        return `Type selected: **${type === 'DEBIT' ? 'Debit (You Gave / Udhaar)' : 'Credit (You Received / Payment)'}** 💳\n\nNow, please enter the **Amount** in ₹ (e.g. 500):`;
+      }
+
+      if (this.mockTxnSession.step === 'amount') {
+        const amtMatch = input.match(/(\d+(?:\.\d+)?)/);
+        if (!amtMatch) {
+          return '⚠️ Please enter a valid amount in numbers (e.g., 500), or type \'cancel\' to exit:';
+        }
+        const amt = parseFloat(amtMatch[1]);
+        if (amt <= 0) {
+          return '⚠️ Amount must be greater than zero. Please enter a valid amount:';
+        }
+
+        this.mockTxnSession.amount = amt;
+        this.mockTxnSession.step = 'description';
+        return `Amount: **₹${amt.toFixed(2)}** 💰\n\nNow, please enter a **Description / Note** for this transaction (e.g., 'Groceries bill', or type **'skip'**):`;
+      }
+
+      if (this.mockTxnSession.step === 'description') {
+        const isSkip = ['skip', 'none', 'no', '-', 'na', 'n/a'].includes(lower);
+        const desc = isSkip ? `Recorded via Assistant (${this.mockTxnSession.type === 'DEBIT' ? 'Given' : 'Received'})` : input;
+        const cName = this.mockTxnSession.customerName;
+        const tType = this.mockTxnSession.type;
+        const amt = this.mockTxnSession.amount || 0;
+        this.mockTxnSession = null;
+
+        setTimeout(() => {
+          this.apiService.notifyDataChange({ type: 'transaction', action: 'create' });
+        }, 100);
+
+        return `✅ **Transaction Recorded Successfully!**\n\n• 👤 **Customer:** ${cName}\n• 💳 **Type:** ${tType === 'DEBIT' ? 'Debit (Udhaar / You Gave) 🔴' : 'Credit (Payment / You Received) 🟢'}\n• 💰 **Amount:** ₹${amt.toFixed(2)}\n• 📝 **Description:** ${desc}`;
+      }
+    }
+
+    // 3. Comma-separated quick customer creation: "ram,232323233,hyd" or "ram, 232323233, hyd, 500"
+    if (input.includes(',')) {
+      const parts = input.split(',');
+      if (parts.length >= 2) {
+        const rawName = parts[0].replace(/\b(create|add|new|customer)\b/gi, '').trim();
+        let rawPhone = parts[1].trim().replace(/\D/g, '');
+        if (rawPhone.startsWith('91') && rawPhone.length === 12) {
+          rawPhone = rawPhone.substring(2);
+        }
+        if (rawName && rawPhone.length >= 7 && rawPhone.length <= 15) {
+          let desc = 'Created via Assistant';
+          let openingBal = 0;
+          if (parts.length >= 3) {
+            const p2 = parts[2].trim();
+            if (/^\d+(\.\d+)?$/.test(p2)) {
+              openingBal = parseFloat(p2);
+              desc = `Opening balance: ₹${openingBal.toFixed(2)}`;
+            } else {
+              desc = p2;
+            }
+          }
+          if (parts.length >= 4) {
+            const p3 = parts[3].trim();
+            if (/^\d+(\.\d+)?$/.test(p3)) {
+              openingBal = parseFloat(p3);
+            } else if (desc === 'Created via Assistant') {
+              desc = p3;
+            } else {
+              desc += `, ${p3}`;
+            }
+          }
+          this.mockSession = null;
+          setTimeout(() => {
+            this.apiService.notifyDataChange({ type: 'customer', action: 'create' });
+          }, 100);
+          return `✅ **Customer Created Successfully!**\n\n• 👤 **Name:** ${rawName}\n• 📱 **Phone:** ${rawPhone}\n• 📝 **Description:** ${desc}\n• 💰 **Opening Balance:** ₹${openingBal.toFixed(2)}`;
+        }
+      }
+    }
+
+    // 4. Initiate Customer Creation Wizard
+    if (
+      lower === 'create customer' ||
+      lower === 'add customer' ||
+      lower === 'new customer' ||
+      lower.startsWith('create customer') ||
+      lower.startsWith('add customer') ||
+      lower.startsWith('new customer')
+    ) {
+      const phoneMatch = input.match(/\b([6-9]\d{9}|\d{7,15})\b/);
+      const mobile = phoneMatch ? phoneMatch[1] : '';
+      const textWithoutPhone = mobile ? input.replace(mobile, ' ') : input;
+      const cleanName = textWithoutPhone
+        .replace(/\b(create|add|new|a|customer|mobile|phone|opening|balance|rs|inr|rupees|description|note)\b/gi, '')
+        .replace(/[^a-zA-Z\s]/g, ' ')
+        .trim();
+
+      if (cleanName && mobile) {
+        setTimeout(() => {
+          this.apiService.notifyDataChange({ type: 'customer', action: 'create' });
+        }, 100);
+        return `✅ **Customer Created Successfully!**\n\n• 👤 **Name:** ${cleanName}\n• 📱 **Phone:** ${mobile}\n• 📝 **Description:** Created via Assistant\n• 💰 **Opening Balance:** ₹0.00`;
+      }
+
+      if (cleanName && cleanName.split(' ').length <= 3) {
+        this.mockSession = { step: 'phone', name: cleanName };
+        return `👤 Creating customer **${cleanName}**.\n\nPlease enter **${cleanName}'s Phone Number** (7-15 digit mobile):\n_(Type 'cancel' anytime to abort)_`;
+      }
+
+      this.mockSession = { step: 'name' };
+      return '👤 **Create New Customer**\n\nPlease enter the **Customer Name**:\n_(💡 Tip: You can quick-create in one shot: **Name, Phone, Description** e.g. `ram, 232323233, hyd`)_';
+    }
+
+    // 5. Shorthand or Wizard Transaction Commands:
+    // e.g. "ram1000 debit / credit for milk", "ram 1000 debit for milk", "gave 500 to rahul", "add transaction"
+    const normalizedInput = input.replace(/([a-zA-Z])(?=\d)|(\d)(?=[a-zA-Z])/g, '$1 $2');
+    const normLower = normalizedInput.toLowerCase();
+    const hasTxnAction = normLower.includes('gave') || normLower.includes('give') || normLower.includes('debit') ||
+                         normLower.includes('got') || normLower.includes('credit') || normLower.includes('jama') ||
+                         normLower.includes('payment') || normLower.includes('udhaar') || normLower.includes('paid');
+
+    if (
+      lower === 'add transaction' ||
+      lower === 'new transaction' ||
+      lower === 'create transaction' ||
+      lower === 'record transaction' ||
+      lower.startsWith('add transaction') ||
+      lower.startsWith('new transaction') ||
+      lower.startsWith('create transaction') ||
+      lower.startsWith('record transaction') ||
+      (hasTxnAction && !normLower.includes('customer'))
+    ) {
+      const amtMatch = normalizedInput.match(/(?:rs\.?|inr|₹)?\s*(\d+(?:\.\d+)?)/i);
+      const isDebit = /\b(debit|debits|gave|give|udhaar|borrowed)\b/i.test(normLower);
+      const isCredit = /\b(credit|credits|got|received|jama|paid|payment)\b/i.test(normLower);
+      let type: 'DEBIT' | 'CREDIT' = 'DEBIT';
+      if (isDebit && isCredit) {
+        const idxDebit = normLower.indexOf('debit');
+        const idxCredit = normLower.indexOf('credit');
+        type = (idxDebit !== -1 && (idxCredit === -1 || idxDebit < idxCredit)) ? 'DEBIT' : 'CREDIT';
+      } else if (isCredit) {
+        type = 'CREDIT';
+      }
+
+      let text = normalizedInput;
+      if (amtMatch) {
+        text = text.replace(amtMatch[0], ' ');
+      }
+
+      let description = '';
+      let targetName = '';
+
+      const forMatch = text.match(/\bfor\s+([a-zA-Z0-9\s&/,-]+)/i);
+      if (forMatch) {
+        description = forMatch[1].trim();
+        text = text.replace(forMatch[0], ' ');
+      }
+
+      const toFromMatch = text.match(/\b(?:to|from)\s+([a-zA-Z0-9\s]+)/i);
+      if (toFromMatch) {
+        targetName = toFromMatch[1].trim();
+        text = text.replace(toFromMatch[0], ' ');
+      }
+
+      const cleaned = text
+        .replace(/\b(gave|give|got|received|payment|udhaar|jama|credit|credits|debit|debits|add|new|create|record|transaction|transactions|rs|inr|rupees|amount)\b/gi, ' ')
+        .replace(/[/\\&]/g, ' ')
+        .replace(/[^a-zA-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      if (!targetName && cleaned) {
+        const words = cleaned.split(/\s+/);
+        if (!description && words.length > 1) {
+          targetName = words[0];
+          description = words.slice(1).join(' ');
+        } else {
+          targetName = words[0];
+        }
+      }
+
+      if (targetName && amtMatch) {
+        this.mockTxnSession = null;
+        setTimeout(() => {
+          this.apiService.notifyDataChange({ type: 'transaction', action: 'create' });
+        }, 100);
+        const finalDesc = description || `Recorded via Assistant (${type === 'DEBIT' ? 'Given' : 'Received'})`;
+        return `✅ **Transaction Recorded Successfully!**\n\n• 👤 **Customer:** ${targetName}\n• 💳 **Type:** ${type === 'DEBIT' ? 'Debit (Udhaar / You Gave) 🔴' : 'Credit (Payment / You Received) 🟢'}\n• 💰 **Amount:** ₹${parseFloat(amtMatch[1]).toFixed(2)}\n• 📝 **Description:** ${finalDesc}`;
+      }
+
+      if (targetName) {
+        this.mockTxnSession = { step: 'type', customerName: targetName };
+        return `Selected customer: **${targetName}** 👤\n\nWas this money given or received?\n• Reply **1** or **Gave** (Debit / Udhaar)\n• Reply **2** or **Got** (Credit / Payment)\n\n_(Type 'cancel' to abort)_`;
+      }
+
+      this.mockTxnSession = { step: 'customer' };
+      return '💸 **Record New Transaction**\n\nWho is this transaction for?\nPlease enter the **Customer Name**:\n_(Type \'cancel\' anytime to abort)_';
+    }
+
     let bestMatch: { response: string; matchCount: number } | null = null;
     for (const entry of this.mockResponses) {
       const matchCount = entry.keywords.filter(kw => lower.includes(kw)).length;

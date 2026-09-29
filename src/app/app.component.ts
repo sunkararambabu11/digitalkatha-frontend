@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastComponent } from './components/toast/toast.component';
 import { ChatWidgetComponent } from './components/chat-widget/chat-widget.component';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -12,4 +13,7 @@ import { ChatWidgetComponent } from './components/chat-widget/chat-widget.compon
 })
 export class AppComponent {
   title = 'Digital Khata Book';
+
+  constructor(private themeService: ThemeService) {}
 }
+

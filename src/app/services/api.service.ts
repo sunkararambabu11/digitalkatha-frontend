@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, catchError, map, forkJoin, switchMap } from 'rxjs';
+import { Observable, of, catchError, map, forkJoin, switchMap, Subject } from 'rxjs';
 import { Customer, CustomerRequest } from '../models/customer.model';
 import {
   Transaction,
@@ -8,20 +8,43 @@ import {
   DashboardSummary,
 } from '../models/transaction.model';
 
+export interface DataChangeEvent {
+  type: 'customer' | 'transaction' | 'all';
+  action?: 'create' | 'update' | 'delete';
+  customerId?: number | string;
+  data?: any;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ApiService {
   private apiUrl = 'http://localhost:8081/api';
+  private dataChange$ = new Subject<DataChangeEvent>();
 
-  constructor(private http: HttpClient) {}
+  get onDataChange(): Observable<DataChangeEvent> {
+    return this.dataChange$.asObservable();
+  }
+
+  notifyDataChange(event: DataChangeEvent): void {
+    this.dataChange$.next(event);
+  }
+
+  constructor(private http: HttpClient) { }
+
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Content-Type': 'application/json',
-      Authorization: token ? `Bearer ${token}` : '',
+
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
     });
+
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    return headers;
   }
 
   // ============================================================
@@ -67,7 +90,7 @@ export class ApiService {
   // Backend: DELETE /api/transactions/{id} (delete)
   // Backend has NO "get all transactions" endpoint.
   // ============================================================
-  getTransactions(customerId?: number | string, customerName?: string): Observable<Transaction[]> {
+  getTransactions(customerId?: number | string, customerName?: string, preloadedCustomers?: Customer[]): Observable<Transaction[]> {
     if (customerId) {
       // Single customer ledger — attach customerName if provided
       return this.http.get<Transaction[]>(
@@ -83,7 +106,8 @@ export class ApiService {
     }
 
     // "All transactions" — fetch each customer's ledger and merge.
-    return this.getCustomers().pipe(
+    const customers$ = preloadedCustomers ? of(preloadedCustomers) : this.getCustomers();
+    return customers$.pipe(
       switchMap(customers => {
         if (customers.length === 0) return of([] as Transaction[]);
         const requests = customers.map(c =>

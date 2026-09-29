@@ -337,6 +337,22 @@
   font-size: 0.75rem;
 }
 
+.cds-table-scroll-wrap {
+  max-height: min(600px, calc(100vh - 290px));
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cds-border-strong) transparent;
+}
+.cds-table-scroll-wrap thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background-color: #e0e0e0;
+  box-shadow: 0 1px 0 var(--cds-border-subtle);
+}
+
 .cds-data-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .cds-data-table thead { background-color: #e0e0e0; }
 .cds-data-table th:nth-child(1) { width: 22%; }
